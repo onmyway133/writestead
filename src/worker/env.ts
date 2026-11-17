@@ -17,6 +17,8 @@ export type AppEnv = Omit<Env, "MODE" | "ROOT_DOMAIN" | "TURNSTILE_SITE_KEY" | "
     // Hosted version only: the platform's Stripe account that bills blogs for Pro and Teams.
     PLATFORM_STRIPE_SECRET_KEY?: string;
     PLATFORM_STRIPE_WEBHOOK_SECRET?: string;
+    // Hosted version only: URL of an analytics script loaded on the marketing pages.
+    PLATFORM_ANALYTICS_SCRIPT?: string;
 };
 
 export function isMulti(env: AppEnv): boolean

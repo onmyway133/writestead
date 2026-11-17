@@ -37,6 +37,7 @@ ${options.noindex ? '<meta name="robots" content="noindex">' : ""}
 <link rel="apple-touch-icon" href="/_ws/apple-touch-icon.png">
 <link rel="preload" href="/_ws/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/_ws/site.css">
+${env.PLATFORM_ANALYTICS_SCRIPT ? `<script defer src="${esc(env.PLATFORM_ANALYTICS_SCRIPT)}"></script>` : ""}
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
