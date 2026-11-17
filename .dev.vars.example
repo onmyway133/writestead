@@ -1,0 +1,12 @@
+# Secrets for the Worker. The Deploy to Cloudflare button asks for each one.
+# Copy this file to .dev.vars for local development. Never commit .dev.vars.
+
+# Recommended. Only this email can create the owner account on the first visit to /admin.
+OWNER_EMAIL=
+
+# Optional. Sender for newsletters and confirmation emails, e.g. "My Blog <hello@yourdomain.com>".
+# Needs a domain onboarded to Cloudflare Email Service.
+EMAIL_FROM=
+
+# Optional. Cloudflare Turnstile secret, used with the TURNSTILE_SITE_KEY variable.
+TURNSTILE_SECRET_KEY=

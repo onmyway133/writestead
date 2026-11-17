@@ -1,0 +1,56 @@
+{
+    "name": "writestead",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "license": "AGPL-3.0-only",
+    "scripts": {
+        "dev": "vite dev",
+        "build": "vite build",
+        "preview": "npm run build && vite preview",
+        "deploy": "npm run build && wrangler deploy",
+        "check": "tsc -b && vitest run",
+        "test": "vitest run",
+        "cf-typegen": "wrangler types"
+    },
+    "cloudflare": {
+        "bindings": {
+            "OWNER_EMAIL": {
+                "description": "Recommended. Your email address. Only this email can create the owner account the first time you open /admin, so nobody else who finds the URL can claim your blog."
+            },
+            "EMAIL_FROM": {
+                "description": "Optional. The sender for newsletters and sign-in emails, for example `My Blog <hello@yourdomain.com>`. Needs a domain onboarded to Cloudflare Email Service. Leave empty and Writestead shows confirmation links instead of emailing them."
+            },
+            "TURNSTILE_SECRET_KEY": {
+                "description": "Optional. A Cloudflare Turnstile secret key. Set it together with the TURNSTILE_SITE_KEY variable to protect subscribe, comment and sign-up forms from bots."
+            }
+        }
+    },
+    "dependencies": {
+        "@fontsource-variable/geist": "5.3.0",
+        "@phosphor-icons/react": "2.1.10",
+        "fflate": "0.8.3",
+        "highlight.js": "11.11.1",
+        "hono": "4.13.18",
+        "marked": "18.1.2",
+        "react": "19.3.1",
+        "react-dom": "19.3.1"
+    },
+    "devDependencies": {
+        "@cloudflare/vite-plugin": "1.69.1",
+        "@phosphor-icons/core": "2.1.1",
+        "@tailwindcss/vite": "4.3.5",
+        "@types/node": "24.19.2",
+        "@types/react": "19.3.0",
+        "@types/react-dom": "19.3.0",
+        "@vitejs/plugin-react": "6.3.0",
+        "tailwindcss": "4.3.5",
+        "typescript": "5.9.3",
+        "vite": "8.3.8",
+        "vitest": "5.1.0",
+        "wrangler": "4.162.0"
+    },
+    "overrides": {
+        "csstype": "3.2.3"
+    }
+}

@@ -1,0 +1,68 @@
+{
+    "$schema": "./node_modules/wrangler/config-schema.json",
+    // Keep this name stable: routes and custom domains point at the Worker by name.
+    "name": "writestead",
+    "main": "./src/worker/index.ts",
+    "compatibility_date": "2026-10-01",
+    "compatibility_flags": ["nodejs_compat"],
+    "assets": {
+        "binding": "ASSETS",
+        // The Worker renders the blog, the API and the admin shell. Only built files skip it.
+        "run_worker_first": ["/*", "!/admin/assets/*", "!/_ws/*"]
+    },
+    "vars": {
+        // "single": one blog per install (self-hosting). "multi": many blogs on subdomains of ROOT_DOMAIN.
+        "MODE": "single",
+        "ROOT_DOMAIN": "",
+        "TURNSTILE_SITE_KEY": ""
+    },
+    "d1_databases": [
+        {
+            "binding": "DB",
+            "database_name": "writestead"
+        }
+    ],
+    // Images and media. R2 must be enabled once on the account (Dashboard > R2) before the first deploy.
+    "r2_buckets": [
+        {
+            "binding": "MEDIA",
+            "bucket_name": "writestead-media"
+        }
+    ],
+    // Short-lived cache of rendered pages and host lookups.
+    "kv_namespaces": [
+        {
+            "binding": "CACHE"
+        }
+    ],
+    // Newsletter sending runs through a queue so a big send retries in batches.
+    "queues": {
+        "producers": [
+            {
+                "binding": "EMAIL_QUEUE",
+                "queue": "writestead-email"
+            }
+        ],
+        "consumers": [
+            {
+                "queue": "writestead-email",
+                "max_batch_size": 50,
+                "max_retries": 5
+            }
+        ]
+    },
+    // Publishes scheduled posts and sends their newsletters.
+    "triggers": {
+        "crons": ["*/5 * * * *"]
+    },
+    // Sending needs a domain onboarded to Cloudflare Email Service and EMAIL_FROM set.
+    "send_email": [
+        {
+            "name": "EMAIL"
+        }
+    ],
+    "observability": {
+        "enabled": true
+    },
+    "upload_source_maps": true
+}
