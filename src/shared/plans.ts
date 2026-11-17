@@ -1,7 +1,7 @@
 // What each plan can do. Check a named entitlement on the server, never the plan name.
 // Self-hosted installs ("single" mode) get everything.
 
-export type Plan = "free" | "pro" | "self";
+export type Plan = "free" | "pro" | "teams" | "self";
 
 export type Entitlements = {
     plan: Plan;
@@ -25,7 +25,7 @@ export const PLAN_ENTITLEMENTS: Record<Plan, Entitlements> = {
         plan: "free",
         subscriberLimit: 1000,
         monthlyEmailLimit: 10000,
-        staffLimit: 2,
+        staffLimit: 1,
         analyticsDays: 30,
         canUseCustomDomain: false,
         canUsePremiumThemes: false,
@@ -39,7 +39,21 @@ export const PLAN_ENTITLEMENTS: Record<Plan, Entitlements> = {
         plan: "pro",
         subscriberLimit: 10000,
         monthlyEmailLimit: 100000,
-        staffLimit: 10,
+        staffLimit: 1,
+        analyticsDays: 3650,
+        canUseCustomDomain: true,
+        canUsePremiumThemes: true,
+        canUseCodeInjection: true,
+        canUsePaidMembers: true,
+        canUseApi: true,
+        canHidePoweredBy: true,
+        canUseAdvancedAnalytics: true,
+    },
+    teams: {
+        plan: "teams",
+        subscriberLimit: 25000,
+        monthlyEmailLimit: 250000,
+        staffLimit: UNLIMITED,
         analyticsDays: 3650,
         canUseCustomDomain: true,
         canUsePremiumThemes: true,
@@ -65,4 +79,6 @@ export const PLAN_ENTITLEMENTS: Record<Plan, Entitlements> = {
     },
 };
 
+// Pro is for one person. Teams adds unlimited teammates and admin roles at three times the price.
 export const PRO_PRICE = { monthly: 9, yearly: 90 };
+export const TEAMS_PRICE = { monthly: 27, yearly: 270 };

@@ -1,5 +1,5 @@
 import { THEMES } from "../../shared/settings";
-import { PRO_PRICE } from "../../shared/plans";
+import { PRO_PRICE, TEAMS_PRICE } from "../../shared/plans";
 import type { AppEnv } from "../env";
 import { icon } from "./icons";
 
@@ -234,13 +234,14 @@ npm run deploy
 <section class="section container" id="pricing">
   <div class="section-head" data-reveal>
     <p class="eyebrow caption-3">Pricing</p>
-    <h2 class="heading-3">Free for a personal blog.<br>Pro when you grow.</h2>
+    <h2 class="heading-3">Free for a personal blog.<br>Pro or Teams when you grow.</h2>
     <div class="billing-toggle" role="group" aria-label="Billing period"><button type="button" data-billing="monthly" aria-pressed="true">Monthly</button><button type="button" data-billing="yearly" aria-pressed="false">Yearly</button></div>
   </div>
   <div class="pricing-grid">
     ${plan({ name: "Free", price: "$0", note: "forever", text: "Everything a personal blog needs.", cta: "Start free", href: "/signup", features: [`yourname.${root}`, "Unlimited posts and pages", "4 free themes", "Up to 1,000 subscribers", "10,000 emails a month", "30 days of analytics", "Comments, RSS, sitemap, search", "Import and export"] })}
-    ${plan({ name: "Pro", price: `<span class="m">$${PRO_PRICE.monthly}</span><span class="y">$${PRO_PRICE.yearly}</span>`, note: '<span class="m">per month</span><span class="y">per year</span>', text: "For writers building an audience or a business.", cta: "Start with Pro", href: "/signup?plan=pro", featured: true, features: ["Everything in Free", "Custom domain with SSL", "All 10 themes", "Paid memberships with your Stripe", "Up to 10,000 subscribers", "100,000 emails a month", "Full analytics history and revenue", "Up to 10 team members", "Custom CSS and code injection", "API and webhooks", "Remove “Powered by Writestead”"] })}
-    ${plan({ name: "Self-hosted", price: "$0", note: "on your Cloudflare", text: "The whole platform on your own account.", cta: "Deploy to Cloudflare", href: DEPLOY, features: ["Every Pro feature", "No subscriber or email caps from us", "Your data in your own D1 and R2", "Cloudflare bills you for usage", "AGPL 3.0 open source"] })}
+    ${plan({ name: "Pro", price: `<span class="m">$${PRO_PRICE.monthly}</span><span class="y">$${PRO_PRICE.yearly}</span>`, note: '<span class="m">per month</span><span class="y">per year</span>', text: "For one writer building an audience or a business.", cta: "Start with Pro", href: "/signup?plan=pro", featured: true, features: ["Everything in Free", "Custom domain with SSL", "All 10 themes", "Paid memberships with your Stripe", "Up to 10,000 subscribers", "100,000 emails a month", "Full analytics history and revenue", "Custom CSS and code injection", "API and webhooks", "Remove “Powered by Writestead”"] })}
+    ${plan({ name: "Teams", price: `<span class="m">$${TEAMS_PRICE.monthly}</span><span class="y">$${TEAMS_PRICE.yearly}</span>`, note: '<span class="m">per month</span><span class="y">per year</span>', text: "For publications with editors, authors and admins.", cta: "Start with Teams", href: "/signup?plan=teams", features: ["Everything in Pro", "Unlimited team members", "Admin, editor, author and contributor roles", "Up to 25,000 subscribers", "250,000 emails a month"] })}
+    ${plan({ name: "Self-hosted", price: "$0", note: "on your Cloudflare", text: "The whole platform on your own account.", cta: "Deploy to Cloudflare", href: DEPLOY, features: ["Every Pro and Teams feature", "No subscriber or email caps from us", "Your data in your own D1 and R2", "Cloudflare bills you for usage", "AGPL 3.0 open source"] })}
   </div>
 </section>
 

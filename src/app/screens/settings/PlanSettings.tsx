@@ -1,5 +1,5 @@
 import { Check, Crown } from "@phosphor-icons/react";
-import { PRO_PRICE } from "../../../shared/plans";
+import { PRO_PRICE, TEAMS_PRICE } from "../../../shared/plans";
 import { useSession } from "../../lib/session";
 import { SettingsCard } from "../SettingsScreen";
 
@@ -24,14 +24,16 @@ export function PlanSettings()
         ["API and webhooks", e.canUseApi],
         ["Remove Powered by Writestead", e.canHidePoweredBy],
     ];
-    const label = e.plan === "self" ? "Self-hosted" : e.plan === "pro" ? "Pro" : "Free";
+    const label = { self: "Self-hosted", teams: "Teams", pro: "Pro", free: "Free" }[e.plan];
     return (
         <SettingsCard
             title={`You're on ${label}`}
             badge={<span className="pill bg-brand/12 text-brand"><Crown weight="fill" />{label}</span>}
             description={e.plan === "self"
                 ? "Self-hosted installs have every feature. Cloudflare bills your account for usage."
-                : e.plan === "pro" ? "Thanks for supporting Writestead." : `Pro is $${PRO_PRICE.monthly} a month or $${PRO_PRICE.yearly} a year.`}
+                : e.plan === "teams" ? "Thanks for supporting Writestead."
+                    : e.plan === "pro" ? `Need teammates? Teams is $${TEAMS_PRICE.monthly} a month with unlimited members and admin roles.`
+                        : `Pro is $${PRO_PRICE.monthly} a month for one writer. Teams is $${TEAMS_PRICE.monthly} a month for a whole team.`}
         >
             <div className="grid gap-x-8 gap-y-1 sm:grid-cols-2">
                 {rows.map(([name, value]) => (
@@ -43,8 +45,8 @@ export function PlanSettings()
                     </div>
                 ))}
             </div>
-            {e.plan === "free" && (
-                <p className="muted text-sm">Online checkout for Pro isn't live yet. To upgrade now, open an issue on GitHub, or self-host for free with everything unlocked.</p>
+            {(e.plan === "free" || e.plan === "pro") && (
+                <p className="muted text-sm">Online checkout for paid plans isn't live yet. To upgrade now, open an issue on GitHub, or self-host for free with everything unlocked.</p>
             )}
         </SettingsCard>
     );

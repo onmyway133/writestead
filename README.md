@@ -43,7 +43,7 @@ One Cloudflare Worker serves everything:
 It runs in two modes, set with the `MODE` variable:
 
 - `single` (default): one blog per deployment, every feature unlocked. This is what you get from the Deploy button.
-- `multi`: many blogs on subdomains of `ROOT_DOMAIN`, with a marketing site on the root domain and Free and Pro plans. This is how writestead.com runs.
+- `multi`: many blogs on subdomains of `ROOT_DOMAIN`, with a marketing site on the root domain and Free, Pro and Teams plans. This is how writestead.com runs.
 
 ## Self-hosting
 

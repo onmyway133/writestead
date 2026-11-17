@@ -8,7 +8,7 @@ CREATE TABLE sites (
     description TEXT NOT NULL DEFAULT '',
     -- Theme, navigation, social links, code injection and other settings as JSON.
     settings TEXT NOT NULL DEFAULT '{}',
-    plan TEXT NOT NULL DEFAULT 'free' CHECK (plan IN ('free', 'pro')),
+    plan TEXT NOT NULL DEFAULT 'free' CHECK (plan IN ('free', 'pro', 'teams')),
     -- 'waitlist' shows a pre-launch page that only collects emails.
     status TEXT NOT NULL DEFAULT 'live' CHECK (status IN ('live', 'waitlist')),
     -- Demo sites refuse writes from the dashboard so visitors can look around safely.

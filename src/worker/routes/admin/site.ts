@@ -121,7 +121,7 @@ siteRoutes.post("/staff/invite", async (c) =>
     const count = await c.env.DB.prepare("SELECT COUNT(*) AS n FROM site_members WHERE site_id = ?").bind(site.id).first<{ n: number }>();
     if ((count?.n ?? 0) >= getEntitlements(c.env, site).staffLimit)
     {
-        throw new ApiError(402, "upgrade_required", "You've reached your plan's team size. Upgrade to Pro for more seats.");
+        throw new ApiError(402, "upgrade_required", "Free and Pro are for one writer. Upgrade to Teams to invite teammates.");
     }
     const code = randomHex(24);
     await c.env.CACHE.put(`invite:${await sha256Hex(code)}`, JSON.stringify({ siteId: site.id, email, role, siteTitle: site.title }), { expirationTtl: 7 * 86400 });

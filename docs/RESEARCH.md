@@ -28,7 +28,8 @@ These are table stakes, so Writestead ships all of them on the free plan.
 ## Decisions
 
 - **Free plan is enough for a personal blog**: unlimited posts, comments, RSS, 4 themes, 1,000 subscribers, 30 days of analytics.
-- **Pro ($9 a month or $90 a year, our assumption to revisit)** adds what a growing publication needs: custom domain, all themes, paid memberships, bigger lists, full analytics history and revenue, team seats, code injection, API and webhooks, and removing the badge.
+- **Pro ($9 a month or $90 a year)** is for one writer: custom domain, all themes, paid memberships, bigger lists, full analytics history and revenue, code injection, API and webhooks, and removing the badge.
+- **Teams ($27 a month or $270 a year, three times Pro)** adds unlimited teammates with admin, editor, author and contributor roles, and higher list and email limits.
 - **Self-hosted gets everything**, because the writer already pays Cloudflare and the code is AGPL.
 
 ## Sources

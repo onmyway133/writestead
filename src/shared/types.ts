@@ -11,7 +11,7 @@ export type Site = {
     custom_domain: string | null;
     title: string;
     description: string;
-    plan: "free" | "pro";
+    plan: "free" | "pro" | "teams";
     status: "live" | "waitlist";
     is_demo: number;
     created_at: number;

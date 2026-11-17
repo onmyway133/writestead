@@ -66,7 +66,8 @@ Progress on Writestead. `[x]` done and checked, `[~]` partly done (the note says
 ## Hosted version
 - [x] Landing page: hero with animated gradient, features, themes, analytics, self-host, pricing, FAQ, privacy, terms
 - [x] Signup with subdomain check, blog picker for people with several blogs
-- [ ] Pro billing (checkout for the Pro plan itself; today a plan is changed in D1)
+- [x] Plans: Free and Pro for one writer, Teams ($27/month, 3x Pro) with unlimited teammates
+- [ ] Billing for Pro and Teams (no checkout yet; today a plan is changed in D1)
 - [ ] Monthly email limit enforcement (limit is defined, sends aren't counted yet)
 - [x] Demo blog at demo.writestead.com (read-only dashboard, sample data)
 - [x] Flagship blog at blog.writestead.com

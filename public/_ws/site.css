@@ -295,12 +295,13 @@ p { text-wrap: pretty; }
 .billing-toggle button { border: 0; background: transparent; padding: 4px 16px; border-radius: 8px; font: inherit; font-size: 14px; line-height: 20px; font-weight: 600; color: var(--muted); cursor: pointer; transition: background-color 300ms var(--ease), color 300ms var(--ease); }
 .billing-toggle button[aria-pressed="true"] { background: var(--card); color: var(--text); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); }
 body:not([data-billing="yearly"]) .y, body[data-billing="yearly"] .m { display: none; }
-.pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: start; }
+.pricing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; align-items: start; }
 .plan { position: relative; padding: 32px 24px; display: flex; flex-direction: column; gap: 16px; }
 .plan-featured { box-shadow: 0 0 0 2px var(--brand), 0 24px 48px rgba(110, 67, 245, 0.18); }
 .plan-badge { position: absolute; top: -12px; left: 24px; padding: 4px 12px; border-radius: 999px; background: var(--brand); color: #fff; }
 .plan-price { display: flex; align-items: baseline; gap: 8px; }
-@media (max-width: 900px) { .pricing-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; } }
+@media (max-width: 1100px) { .pricing-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 680px) { .pricing-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; } }
 
 .faq-list { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; }
 .faq-item { border-radius: 12px; background: var(--bg-tint); padding: 0 24px; transition: background-color 300ms var(--ease); }
