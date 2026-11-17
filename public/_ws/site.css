@@ -23,20 +23,6 @@
     color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --ink: #000000;
-        --text: #f1effa;
-        --muted: #a5a1bb;
-        --line: rgba(255, 255, 255, 0.1);
-        --bg: #131209;
-        --bg-tint: #181818;
-        --card: #1f1f1f;
-        --brand-soft: rgba(110, 67, 245, 0.18);
-        --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
-        color-scheme: dark;
-    }
-}
 
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 96px; }
@@ -329,3 +315,113 @@ body:not([data-billing="yearly"]) .y, body[data-billing="yearly"] .m { display: 
 .footer-col a:hover { color: var(--text); }
 .footer-meta { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 48px; }
 @media (max-width: 760px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+
+/* ---------- Motion and depth ---------- */
+
+/* Pointer parallax: the script sets --px/--py per layer from its data-depth. */
+[data-depth] { translate: var(--px, 0) var(--py, 0); transition: translate 600ms var(--ease); }
+.blob-layer { position: absolute; inset: 0; }
+.grain {
+    position: absolute; inset: 0; opacity: 0.18; mix-blend-mode: overlay; pointer-events: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* The headline's second line shimmers through the brand colors. */
+.shine {
+    background: linear-gradient(100deg, #2b0d73 0%, #5b2ee8 30%, #b0177e 52%, #d1243f 66%, #2b0d73 100%);
+    background-size: 220% 100%;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: shine 7s var(--ease) infinite alternate;
+}
+.hero-title:has(.shine) { mix-blend-mode: normal; }
+@keyframes shine { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
+
+/* Product shot sits on a stage with floating cards at different depths. */
+.mock-stage { position: relative; perspective: 1600px; }
+.mock { transform-origin: 50% 0; }
+.floater {
+    position: absolute; z-index: 2; display: flex; align-items: center; gap: 12px; padding: 12px 16px 12px 12px; border-radius: 16px;
+    background: color-mix(in srgb, var(--card) 82%, transparent); backdrop-filter: blur(16px) saturate(1.5); -webkit-backdrop-filter: blur(16px) saturate(1.5);
+    box-shadow: 0 0 0 1px var(--line), 0 16px 40px rgba(40, 20, 100, 0.18);
+    font-size: 14px; line-height: 20px; animation: bob 6s var(--ease) infinite alternate;
+}
+.floater b { display: block; font-weight: 600; }
+.floater small { display: block; font-size: 12px; line-height: 16px; color: var(--muted); }
+.fi { display: inline-flex; width: 36px; height: 36px; align-items: center; justify-content: center; border-radius: 10px; color: #fff; }
+.fi-green { background: #16a34a; } .fi-violet { background: var(--brand); } .fi-amber { background: #f59e0b; } .fi-cyan { background: #0891b2; }
+.f1 { top: 96px; left: -8px; animation-delay: -1s; }
+.f2 { top: 40px; right: -16px; animation-delay: -3s; }
+.f3 { bottom: 72px; left: 40px; animation-delay: -2s; }
+.f4 { bottom: 120px; right: 24px; animation-delay: -4s; }
+@keyframes bob { from { transform: translateY(0); } to { transform: translateY(-12px); } }
+@media (max-width: 860px) { .floater { display: none; } }
+
+/* Marquee of what's included; pauses while hovered. */
+.marquee { overflow: hidden; padding: 24px 0; -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
+.marquee-track { display: flex; gap: 12px; width: max-content; animation: marquee 48s linear infinite; }
+.marquee:hover .marquee-track { animation-play-state: paused; }
+.marquee-item { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; background: var(--bg-tint); font-size: 14px; line-height: 20px; font-weight: 500; white-space: nowrap; color: var(--text); transition: background-color 300ms var(--ease), color 300ms var(--ease); }
+.marquee-item svg { color: var(--brand); }
+.marquee-item:hover { background: var(--brand); color: #fff; }
+.marquee-item:hover svg { color: #fff; }
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+/* Cursor spotlight on cards. */
+.spot { position: relative; isolation: isolate; overflow: hidden; }
+.spot::before {
+    content: ""; position: absolute; inset: 0; z-index: -1; opacity: 0; transition: opacity 300ms var(--ease);
+    background: radial-gradient(360px circle at var(--mx, 50%) var(--my, 50%), rgba(110, 67, 245, 0.14), transparent 60%);
+}
+.spot:hover::before { opacity: 1; }
+.feature:hover { transform: translateY(-6px); box-shadow: 0 0 0 1px rgba(110, 67, 245, 0.25), 0 24px 48px rgba(110, 67, 245, 0.14); }
+.feature:hover .feature-icon { background: var(--brand); color: #fff; transform: rotate(-8deg) scale(1.08); }
+.feature-icon { transition: transform 500ms var(--ease), background-color 300ms var(--ease), color 300ms var(--ease); }
+
+/* Highlighter: marks in long text sweep in when the reader hovers the paragraph or card. */
+mark.hl {
+    color: inherit; padding: 0 2px; margin: 0 -2px; border-radius: 4px;
+    background: linear-gradient(100deg, rgba(255, 210, 90, 0.55), rgba(255, 160, 110, 0.5)) no-repeat 0 0 / 0% 100%;
+    transition: background-size 600ms var(--ease), color 300ms var(--ease);
+}
+.hl-text:hover mark.hl, .faq-item[open] mark.hl { background-size: 100% 100%; color: var(--text); }
+.hl-text:hover mark.hl:nth-of-type(2) { transition-delay: 120ms; }
+.hl-text:hover mark.hl:nth-of-type(3) { transition-delay: 240ms; }
+.hl-text:hover mark.hl:nth-of-type(4) { transition-delay: 360ms; }
+.section-ink mark.hl { background-image: linear-gradient(100deg, rgba(110, 67, 245, 0.75), rgba(224, 69, 123, 0.7)); }
+.section-ink .hl-text:hover mark.hl { color: #fff; }
+
+/* Giant words band. */
+.words-band { overflow: hidden; padding: 64px 0 0; display: flex; flex-direction: column; gap: 8px; }
+.words-row { white-space: nowrap; font-size: 96px; line-height: 1; font-weight: 600; letter-spacing: -0.04em; color: transparent; -webkit-text-stroke: 1.5px color-mix(in srgb, var(--text) 40%, transparent); }
+.words-row i { font-style: normal; color: var(--brand); -webkit-text-stroke: 0; font-size: 0.5em; vertical-align: middle; }
+.row-b { width: max-content; -webkit-text-stroke: 0; background: linear-gradient(90deg, #6e43f5, #c026d3 35%, #f43f5e 60%, #ff8a3d 80%, #6e43f5); -webkit-background-clip: text; background-clip: text; }
+.row-b i { color: #ff8a3d; }
+@media (max-width: 720px) { .words-row { font-size: 60px; } }
+
+.theme-card .theme-preview { transform-style: preserve-3d; }
+.theme-card:hover .theme-preview { transform: translateY(-6px) rotateX(6deg) rotateY(-8deg); box-shadow: 0 0 0 1px var(--line), 0 24px 48px rgba(40, 20, 100, 0.18); }
+.plan { transition: transform 500ms var(--ease), box-shadow 300ms var(--ease); }
+.plan:hover { transform: translateY(-6px); }
+
+/* Scroll-linked parallax where the browser supports scroll timelines; elsewhere things just sit still. */
+@supports (animation-timeline: scroll()) {
+    .blob-layer { animation: blobs-drift linear both; animation-timeline: scroll(root); animation-range: 0 100vh; }
+    @keyframes blobs-drift { to { transform: translateY(28%) scale(1.08); } }
+    .hero-inner { animation: hero-lift linear both; animation-timeline: scroll(root); animation-range: 0 70vh; }
+    @keyframes hero-lift { to { opacity: 0.2; transform: translateY(-80px); } }
+    .mock { animation: mock-tilt linear both; animation-timeline: view(); animation-range: entry 0% cover 45%; }
+    @keyframes mock-tilt { from { transform: rotateX(24deg) scale(0.9) translateY(40px); } to { transform: none; } }
+    .row-a { animation: words-left linear both; animation-timeline: view(); }
+    .row-b { animation: words-right linear both; animation-timeline: view(); }
+    @keyframes words-left { from { transform: translateX(0); } to { transform: translateX(-35%); } }
+    @keyframes words-right { from { transform: translateX(-35%); } to { transform: translateX(0); } }
+    .stats-mock.tilt { animation: card-rise linear both; animation-timeline: view(); animation-range: entry 0% cover 50%; }
+    @keyframes card-rise { from { transform: perspective(1200px) rotateY(-14deg) translateY(48px); } to { transform: none; } }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-depth] { translate: none; }
+    .shine, .floater, .marquee-track, .blob-layer, .hero-inner, .mock, .words-row, .stats-mock.tilt { animation: none !important; }
+    .marquee-track { flex-wrap: wrap; width: auto; justify-content: center; }
+    mark.hl { transition: none; }
+}

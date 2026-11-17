@@ -88,8 +88,19 @@ var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isInter
 document.querySelectorAll("[data-reveal]").forEach(function(el){if(reduce){el.classList.add("is-in")}else{io.observe(el)}});
 var words=document.querySelectorAll(".tagline .w");
 if(reduce){words.forEach(function(w){w.classList.add("on")})}else{var wo=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("on");wo.unobserve(e.target)}})},{rootMargin:"0px 0px -42% 0px"});words.forEach(function(w){wo.observe(w)})}
+if(!reduce&&matchMedia("(pointer:fine)").matches){var hero=document.querySelector(".hero"),layers=hero?hero.querySelectorAll("[data-depth]"):[],tx=0,ty=0,raf=0;
+if(hero)hero.addEventListener("pointermove",function(e){var r=hero.getBoundingClientRect();tx=(e.clientX-r.left)/r.width-.5;ty=(e.clientY-r.top)/r.height-.5;if(!raf)raf=requestAnimationFrame(function(){raf=0;layers.forEach(function(l){var d=parseFloat(l.dataset.depth);l.style.setProperty("--px",(tx*d*14).toFixed(1)+"px");l.style.setProperty("--py",(ty*d*10).toFixed(1)+"px")})})});
+document.querySelectorAll(".spot").forEach(function(c){c.addEventListener("pointermove",function(e){var r=c.getBoundingClientRect();c.style.setProperty("--mx",(e.clientX-r.left)+"px");c.style.setProperty("--my",(e.clientY-r.top)+"px")})})}
 document.querySelectorAll(".billing-toggle button").forEach(function(b){b.addEventListener("click",function(){document.querySelectorAll(".billing-toggle button").forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});document.body.dataset.billing=b.dataset.billing})});
 })();`;
+
+// ==phrase== in copy becomes a highlighter mark that sweeps in when the reader hovers the paragraph.
+function marks(copy: string): string
+{
+    return copy.replace(/==(.+?)==/g, '<mark class="hl">$1</mark>');
+}
+
+const MARQUEE = ["Import from Ghost", "WordPress", "Substack", "Medium", "Markdown", "Stripe", "PayPal", "RSS and Atom", "Sitemap and JSON-LD", "Custom domains", "Turnstile", "Webhooks", "Content API", "10 themes", "Cookieless analytics", "Follow-up emails", "Paid posts", "Team roles"];
 
 function tagline(text: string): string
 {
@@ -97,12 +108,12 @@ function tagline(text: string): string
 }
 
 const FEATURES: { icon: string; title: string; text: string }[] = [
-    { icon: "pen-nib", title: "An editor that stays out of the way", text: "Markdown with a live preview. Drag in images, paste a YouTube, X, CodePen or gist link to embed it, and get highlighted code blocks. Autosave and revision history included." },
-    { icon: "envelope-simple", title: "Every post can be a newsletter", text: "Double opt-in forms, an embeddable signup widget, welcome emails, segments by label or plan, and email-only posts. Sending runs through Cloudflare Queues." },
-    { icon: "crown-simple", title: "Paid memberships, your Stripe", text: "Free and paid tiers, members-only posts, and a preview-then-paywall split. Connect more than one Stripe account. Money goes straight to you." },
-    { icon: "chart-line-up", title: "Analytics without cookies", text: "Views, unique visitors, top posts, referrers, countries, devices and UTM sources. Plus opens, clicks, subscriber growth, churn and MRR." },
-    { icon: "palette", title: "Ten themes, no code needed", text: "Minimal, magazine, newsletter, photo, docs, dark, retro and more. Pick colors, fonts, logo and layout, and preview before you switch." },
-    { icon: "arrows-left-right", title: "Come in from anywhere, leave anytime", text: "Import from Ghost, WordPress, Substack, Medium or Markdown files, images and subscribers included. Export everything as JSON or CSV whenever you like." },
+    { icon: "pen-nib", title: "An editor that stays out of the way", text: "Markdown with a ==live preview==. Drag in images, paste a YouTube, X, CodePen or gist link to ==embed it==, and get highlighted code blocks. ==Autosave and revision history== included." },
+    { icon: "envelope-simple", title: "Every post can be a newsletter", text: "==Double opt-in== forms, an embeddable signup widget, ==welcome emails==, segments by label or plan, and ==email-only posts==. Sending runs through Cloudflare Queues." },
+    { icon: "crown-simple", title: "Paid memberships, your money", text: "Free and paid tiers, members-only posts, and a ==preview, then paywall== split. Connect Stripe or PayPal accounts. ==Money goes straight to you.==" },
+    { icon: "chart-line-up", title: "Analytics without cookies", text: "Views, ==unique visitors==, top posts, referrers, countries, devices and UTM sources. Plus ==opens, clicks==, subscriber growth, churn and ==MRR==." },
+    { icon: "palette", title: "Ten themes, no code needed", text: "Minimal, magazine, newsletter, photo, docs, dark, retro and more. Pick ==colors, fonts, logo and layout==, and ==preview before you switch==." },
+    { icon: "arrows-left-right", title: "Come in from anywhere, leave anytime", text: "Import from ==Ghost, WordPress, Substack, Medium== or Markdown files, images and subscribers included. ==Export everything== as JSON, Markdown or CSV whenever you like." },
 ];
 
 const STEPS = [
@@ -131,12 +142,12 @@ function faqs(env: AppEnv): Faq[]
 export function landingPage(env: AppEnv): string
 {
     const root = env.ROOT_DOMAIN || "writestead.com";
-    const body = `
+    const body = marks(`
 <section class="hero">
-  <div class="hero-bg" aria-hidden="true"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span><span class="blob b4"></span><span class="blob b5"></span></div>
-  <div class="container hero-inner">
+  <div class="hero-bg" aria-hidden="true"><div class="blob-layer"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span><span class="blob b4"></span><span class="blob b5"></span></div><div class="grain"></div></div>
+  <div class="container hero-inner" data-depth="0.4">
     <a class="pill caption-1" href="${REPO}"><span class="pill-dot"></span>Open source and runs on Cloudflare ${icon("arrow-right", 14)}</a>
-    <h1 class="heading-1 hero-title">Write it here.<br>Own it forever.</h1>
+    <h1 class="heading-1 hero-title">Write it here.<br><span class="shine">Own it forever.</span></h1>
     <p class="hero-sub body-3">A blog, a newsletter and paid memberships in one place.<br class="hide-sm"> Start free on ${root}, or deploy your own copy in one click.</p>
     <form class="hero-form" action="/signup" method="get">
       <label class="sr-only" for="hero-name">Choose your blog address</label>
@@ -145,22 +156,34 @@ export function landingPage(env: AppEnv): string
     </form>
     <p class="caption-2 hero-note">No credit card. Or <a href="${DEPLOY}">deploy to your own Cloudflare</a>.</p>
   </div>
-  <div class="container">${productMock()}</div>
+  <div class="container mock-stage">
+    ${productMock()}
+    <div class="floater f1" data-depth="2.2" aria-hidden="true"><span class="fi fi-green">${icon("users-three", 18)}</span><span><b>+24 subscribers</b><small>today</small></span></div>
+    <div class="floater f2" data-depth="1.4" aria-hidden="true"><span class="fi fi-violet">${icon("envelope-simple", 18)}</span><span><b>58.3% opened</b><small>Sunday letter</small></span></div>
+    <div class="floater f3" data-depth="2.8" aria-hidden="true"><span class="fi fi-amber">${icon("crown-simple", 18)}</span><span><b>New paid member</b><small>Supporter, yearly</small></span></div>
+    <div class="floater f4" data-depth="1.8" aria-hidden="true"><span class="fi fi-cyan">${icon("lightning", 18)}</span><span><b>Published</b><small>web, email and RSS</small></span></div>
+  </div>
 </section>
 
-<section class="proof container" aria-label="What it runs on">
-  <p class="caption-1 muted">Built on Cloudflare Workers, D1, R2, Queues and Cron Triggers. Imports from Ghost, WordPress, Substack and Medium.</p>
+<section class="marquee" aria-label="What's included">
+  <div class="marquee-track">${[...MARQUEE, ...MARQUEE].map((item, index) => `<span class="marquee-item"${index >= MARQUEE.length ? ' aria-hidden="true"' : ""}>${icon("sparkle", 14)}${item}</span>`).join("")}</div>
 </section>
+
 
 <section class="section container" id="features">
   <div class="section-head" data-reveal>
     <p class="eyebrow caption-3">Everything a writer needs</p>
     <h2 class="heading-3">One home for your posts,<br>your list and your income</h2>
-    <p class="body-3 muted">The parts you'd usually stitch together from three tools, built in and working together.</p>
+    <p class="body-3 muted hl-text">The parts you'd usually stitch together from ==three different tools==, built in and ==working together==.</p>
   </div>
   <div class="feature-grid">
-    ${FEATURES.map((feature) => `<article class="feature card" data-reveal><span class="feature-icon">${icon(feature.icon, 22)}</span><h3 class="title-2">${feature.title}</h3><p class="body-6 muted">${feature.text}</p></article>`).join("")}
+    ${FEATURES.map((feature) => `<article class="feature card spot hl-text" data-reveal><span class="feature-icon">${icon(feature.icon, 22)}</span><h3 class="title-2">${feature.title}</h3><p class="body-6 muted">${marks(feature.text)}</p></article>`).join("")}
   </div>
+</section>
+
+<section class="words-band" aria-hidden="true">
+  <div class="words-row row-a">Write <i>✦</i> Publish <i>✦</i> Send <i>✦</i> Earn <i>✦</i> Own <i>✦</i> Write <i>✦</i> Publish <i>✦</i> Send</div>
+  <div class="words-row row-b">Blog <i>✦</i> Newsletter <i>✦</i> Members <i>✦</i> Analytics <i>✦</i> Themes <i>✦</i> Blog <i>✦</i> Newsletter</div>
 </section>
 
 <section class="tagline-section" aria-label="Why Writestead">
@@ -201,12 +224,12 @@ export function landingPage(env: AppEnv): string
   <div data-reveal>
     <p class="eyebrow caption-3">Analytics</p>
     <h2 class="heading-3">Know what lands,<br>without tracking anyone</h2>
-    <p class="body-3 muted">Built-in, cookieless stats for the web and your newsletter. See which posts bring subscribers and which emails get read.</p>
+    <p class="body-3 muted hl-text">Built-in, ==cookieless stats== for the web and your newsletter. See ==which posts bring subscribers== and ==which emails get read==.</p>
     <ul class="checks body-6">
       ${["Views, visitors, top posts and referrers", "Countries, devices and UTM sources", "Open and click rates for every send", "Subscriber growth, churn and free to paid conversions", "MRR, new and cancelled paid members"].map((item) => `<li>${icon("check", 18)}${item}</li>`).join("")}
     </ul>
   </div>
-  <div class="stats-mock card" data-reveal aria-hidden="true">
+  <div class="stats-mock card spot tilt" data-reveal aria-hidden="true">
     <div class="sm-row"><div><p class="caption-4 muted">Visitors</p><p class="heading-5">8,412</p></div><div><p class="caption-4 muted">Subscribers</p><p class="heading-5">1,937</p></div><div><p class="caption-4 muted">Open rate</p><p class="heading-5">58.3%</p></div></div>
     <svg class="sm-chart" viewBox="0 0 400 140" preserveAspectRatio="none"><path d="M0 120 C40 112 60 96 90 98 S150 70 180 74 S240 40 270 52 S330 22 360 30 L400 18 L400 140 L0 140Z" fill="rgba(110,67,245,.12)"/><path d="M0 120 C40 112 60 96 90 98 S150 70 180 74 S240 40 270 52 S330 22 360 30 L400 18" fill="none" stroke="#6e43f5" stroke-width="3"/></svg>
     <div class="sm-list caption-2"><p><span>news.ycombinator.com</span><span>2,104</span></p><p><span>Newsletter</span><span>1,388</span></p><p><span>google.com</span><span>941</span></p></div>
@@ -219,7 +242,7 @@ export function landingPage(env: AppEnv): string
     <div data-reveal>
       <p class="eyebrow caption-3">Self-host</p>
       <h2 class="heading-3">Your own copy on Cloudflare,<br>every feature unlocked</h2>
-      <p class="body-3">Click the button, connect your Cloudflare account, and Writestead creates the Worker, the D1 database, the R2 bucket, the KV namespace and the queue for you. Updates are a pull from upstream.</p>
+      <p class="body-3 hl-text">Click the button, connect your Cloudflare account, and Writestead creates ==the Worker, the D1 database, the R2 bucket, the KV namespace and the queue== for you. ==Updates are a pull from upstream.==</p>
       <div class="cta-row"><a class="btn btn-primary" href="${DEPLOY}">${icon("cloud", 18)} Deploy to Cloudflare</a><a class="btn btn-on-dark" href="${REPO}">${icon("github-logo", 18)} View on GitHub</a></div>
     </div>
     <pre class="code-card caption-2" data-reveal aria-label="Manual setup commands"><code><span class="c"># or set it up by hand</span>
@@ -248,7 +271,7 @@ npm run deploy
 <section class="section container faq" id="faq">
   <div class="section-head" data-reveal><p class="eyebrow caption-3">FAQ</p><h2 class="heading-3">Questions, answered</h2></div>
   <div class="faq-list">
-    ${faqs(env).map((item) => `<details class="faq-item"><summary class="title-3">${esc(item.q)}<span class="faq-icon">${icon("plus", 18)}</span></summary><p class="body-6 muted">${esc(item.a)}</p></details>`).join("")}
+    ${faqs(env).map((item) => `<details class="faq-item"><summary class="title-3">${esc(item.q)}<span class="faq-icon">${icon("plus", 18)}</span></summary><p class="body-6 muted hl-text">${esc(item.a).replace(/^([^.]+\.)/, '<mark class="hl">$1</mark>')}</p></details>`).join("")}
   </div>
 </section>
 
@@ -264,7 +287,7 @@ npm run deploy
         "@context": "https://schema.org",
         "@type": "FAQPage",
         mainEntity: faqs(env).map((item) => ({ "@type": "Question", name: item.q, acceptedAnswer: { "@type": "Answer", text: item.a } })),
-    }).replace(/</g, "\\u003c")}</script>`;
+    }).replace(/</g, "\\u003c")}</script>`);
     return shell(env, {
         title: "Writestead: open source blogging and newsletters on Cloudflare",
         description: "Publish posts, send newsletters and run paid memberships from one place. Start free on writestead.com or self-host on your own Cloudflare account.",
