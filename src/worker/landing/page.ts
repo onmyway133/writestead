@@ -72,7 +72,7 @@ ${options.noindex ? '<meta name="robots" content="noindex">' : ""}
     <div class="footer-col"><p class="title-4">Open source</p><a href="${REPO}">GitHub</a><a href="${REPO}#self-hosting">Self-hosting guide</a><a href="${DEPLOY}">Deploy to Cloudflare</a></div>
     <div class="footer-col"><p class="title-4">Legal</p><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div>
   </div>
-  <div class="container footer-meta caption-5 muted"><span>© ${new Date().getUTCFullYear()} Writestead</span><span>Made for writers who want to own their work. Illustrated icons from <a href="https://www.flaticon.com" rel="noopener">Flaticon</a>.</span></div>
+  <div class="container footer-meta caption-5 muted"><span>© ${new Date().getUTCFullYear()} Writestead</span><span>Made for writers who want to own their work.</span></div>
 </footer>
 <script>${SCRIPT}</script>
 </body>

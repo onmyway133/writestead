@@ -8,6 +8,6 @@ dist/
 .kaji/
 .super/
 
-# Licensed Flaticon icons for the hosted landing page. The license forbids redistributing them,
+# Flaticon Premium icons for the hosted landing page. The license allows using them, not redistributing the files,
 # so they stay out of the public repo and are uploaded only by scripts/deploy-hosted.mjs.
 public/_ws/brand/
