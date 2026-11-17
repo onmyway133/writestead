@@ -4,6 +4,7 @@ import { can, type HonoEnv, requirePermission } from "../../auth";
 import { queueNewsletter } from "../../email";
 import { ApiError, badRequest, newId, notFound, now, readJson, text } from "../../lib/http";
 import { excerptOf, slugify } from "../../lib/text";
+import { deleteMedia, putMedia } from "../../media";
 import { fireWebhooks } from "../../webhooks";
 
 type C = Context<HonoEnv>;
@@ -326,7 +327,7 @@ contentRoutes.post("/media", async (c) =>
     const id = newId();
     const extension = (file.name.split(".").pop() ?? "bin").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5) || "bin";
     const key = `${site.id}/${new Date().toISOString().slice(0, 7)}/${id}.${extension}`;
-    await c.env.MEDIA.put(key, file.stream(), { httpMetadata: { contentType: file.type } });
+    await putMedia(c.env, key, file.stream(), file.type);
     await c.env.DB.prepare("INSERT INTO media (id, site_id, key, filename, mime, size, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
         .bind(id, site.id, key, file.name.slice(0, 200), file.type, file.size, now()).run();
     return c.json({ id, url: `/media/${key}`, filename: file.name, mime: file.type });
@@ -347,7 +348,7 @@ contentRoutes.delete("/media/:id", async (c) =>
     const row = await c.env.DB.prepare("SELECT key FROM media WHERE id = ? AND site_id = ?").bind(c.req.param("id"), c.get("site").id).first<{ key: string }>();
     if (row)
     {
-        await c.env.MEDIA.delete(row.key);
+        await deleteMedia(c.env, row.key);
         await c.env.DB.prepare("DELETE FROM media WHERE id = ?").bind(c.req.param("id")).run();
     }
     return c.json({ ok: true });

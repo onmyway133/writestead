@@ -8,6 +8,7 @@ import { getEntitlements, isMulti, siteUrl } from "../../env";
 import { randomHex, sha256Hex } from "../../lib/crypto";
 import { ApiError, badRequest, newId, now, readJson, text } from "../../lib/http";
 import { excerptOf, slugify } from "../../lib/text";
+import { putMedia } from "../../media";
 import { WEBHOOK_EVENTS } from "../../webhooks";
 
 export const siteRoutes = new Hono<HonoEnv>();
@@ -273,7 +274,7 @@ siteRoutes.post("/import/image", async (c) =>
     const id = newId();
     const extension = type.split("/")[1].replace("jpeg", "jpg").replace(/\+.*$/, "").slice(0, 5);
     const key = `${site.id}/import/${id}.${extension}`;
-    await c.env.MEDIA.put(key, bytes, { httpMetadata: { contentType: type } });
+    await putMedia(c.env, key, bytes, type);
     await c.env.DB.prepare("INSERT INTO media (id, site_id, key, filename, mime, size, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
         .bind(id, site.id, key, url.split("/").pop()?.slice(0, 200) ?? "image", type, bytes.byteLength, now()).run();
     return c.json({ url: `/media/${key}` });
