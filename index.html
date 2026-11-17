@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="robots" content="noindex" />
+        <meta name="theme-color" content="#6e43f5" />
+        <link rel="icon" href="/_ws/favicon.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/_ws/apple-touch-icon.png" />
+        <title>Writestead</title>
+        <!-- Sets the theme before the first paint so nothing flashes. Keep in sync with src/app/lib/theme.ts. -->
+        <script>
+            (function ()
+            {
+                var theme = "light";
+                try
+                {
+                    theme = localStorage.getItem("writestead-theme") || "light";
+                }
+                catch (error)
+                {
+                }
+                var isDark = theme === "dark" || (theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+                document.documentElement.dataset.theme = isDark ? "dark" : "light";
+            })();
+        </script>
+    </head>
+    <body>
+        <div id="root"></div>
+        <script type="module" src="/src/app/main.tsx"></script>
+    </body>
+</html>

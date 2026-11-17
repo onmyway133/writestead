@@ -1,0 +1,276 @@
+@import "tailwindcss";
+@import "@fontsource-variable/geist";
+
+/* Dark mode follows data-theme on <html>, set by src/app/lib/theme.ts and the script in index.html. */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+/* Violet from the quill in the logo. Same tokens as the landing page (public/_ws/site.css). */
+@theme {
+    --font-sans: "Geist Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --color-brand: #6e43f5;
+    --color-brand-strong: #5a2fe0;
+    --color-brand-soft: #efeaff;
+    --color-ink: #15122b;
+    --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+    html {
+        color-scheme: light;
+    }
+
+    html[data-theme="dark"] {
+        color-scheme: dark;
+    }
+
+    :root {
+        --page-bg: #f7f6fb;
+    }
+
+    :root[data-theme="dark"] {
+        --page-bg: #131209;
+    }
+
+    body {
+        @apply text-zinc-900 antialiased dark:text-zinc-100;
+        background-color: var(--page-bg);
+    }
+
+    ::selection {
+        background: color-mix(in oklab, var(--color-brand) 25%, transparent);
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-brand);
+        outline-offset: 2px;
+    }
+
+    button:not(:disabled),
+    [role="button"]:not([aria-disabled="true"]) {
+        cursor: pointer;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+}
+
+@utility btn {
+    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-[10px] px-4 text-sm font-semibold whitespace-nowrap transition-[background-color,transform,box-shadow] duration-300 ease-out-soft active:translate-y-px active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+}
+
+@layer components {
+    .card {
+        @apply rounded-2xl bg-white shadow-[0_0_0_1px_rgb(21_18_43/0.06),0_1px_2px_rgb(21_18_43/0.04)] dark:bg-[#1f1f1f] dark:shadow-[0_0_0_1px_rgb(255_255_255/0.08)];
+    }
+
+    .muted {
+        @apply text-zinc-500 dark:text-zinc-400;
+    }
+
+    .label {
+        @apply mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300;
+    }
+
+    /* Inputs: white field, hairline ring, soft violet focus ring. */
+    .input {
+        @apply w-full rounded-[10px] bg-white px-3 py-2 text-sm text-zinc-900 shadow-[0_0_0_1px_rgb(21_18_43/0.12),0_1px_2px_rgb(21_18_43/0.04)] outline-none transition-shadow duration-200 placeholder:text-zinc-400 focus:shadow-[0_0_0_1px_var(--color-brand),0_0_0_4px_rgb(110_67_245/0.18)] disabled:opacity-60 dark:bg-[#272727] dark:text-zinc-100 dark:shadow-[0_0_0_1px_rgb(255_255_255/0.1)];
+    }
+
+    textarea.input {
+        @apply min-h-24 leading-relaxed;
+    }
+
+    select.input {
+        @apply appearance-none pr-9;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' fill='%2371717a'><path d='M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z'/></svg>");
+        background-size: 14px;
+        background-position: right 12px center;
+        background-repeat: no-repeat;
+    }
+
+    .btn-primary {
+        @apply btn bg-brand text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.22),0_1px_2px_rgb(48_20_140/0.3),0_4px_12px_rgb(110_67_245/0.25)] hover:-translate-y-px hover:bg-brand-strong;
+    }
+
+    .btn-secondary {
+        @apply btn bg-white text-zinc-800 shadow-[0_0_0_1px_rgb(21_18_43/0.1),0_1px_2px_rgb(21_18_43/0.06)] hover:bg-zinc-50 dark:bg-[#272727] dark:text-zinc-100 dark:shadow-[0_0_0_1px_rgb(255_255_255/0.1)] dark:hover:bg-[#313131];
+    }
+
+    .btn-ghost {
+        @apply btn text-zinc-600 hover:bg-brand/8 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-white/8 dark:hover:text-white;
+    }
+
+    .btn-danger {
+        @apply btn bg-red-600 text-white hover:bg-red-700;
+    }
+
+    .btn-sm {
+        @apply min-h-8 rounded-lg px-3 text-xs;
+    }
+
+    .icon-btn {
+        @apply inline-flex size-9 items-center justify-center rounded-lg text-zinc-500 transition-colors duration-200 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-white/8 dark:hover:text-white;
+    }
+
+    /* Selected options use a tinted background, never an outline. */
+    .chip {
+        @apply inline-flex min-h-8 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-zinc-600 transition-colors duration-200 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/8;
+    }
+
+    .chip[aria-pressed="true"],
+    .chip[aria-selected="true"],
+    .chip[aria-current="page"] {
+        @apply bg-brand/12 text-brand hover:bg-brand/16 dark:bg-brand/25 dark:text-violet-200;
+    }
+
+    .pill {
+        @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold;
+    }
+
+    .kbd {
+        @apply rounded-md bg-zinc-100 px-1.5 py-0.5 font-mono text-[11px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400;
+    }
+
+    /* Tables: quiet header, roomy rows, hover tint. */
+    .table {
+        @apply w-full text-left text-sm;
+    }
+
+    .table thead th {
+        @apply px-4 py-3 text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-400;
+    }
+
+    .table tbody tr {
+        @apply shadow-[0_-1px_0_rgb(21_18_43/0.06)] transition-colors duration-200 hover:bg-zinc-50 dark:shadow-[0_-1px_0_rgb(255_255_255/0.06)] dark:hover:bg-white/3;
+    }
+
+    .table td {
+        @apply px-4 py-3 align-middle;
+    }
+
+    .skeleton {
+        @apply animate-pulse rounded-lg bg-zinc-200/70 dark:bg-white/8;
+    }
+
+    /* Rendered Markdown in the editor preview. */
+    .prose-preview {
+        @apply text-[17px] leading-[1.75];
+    }
+
+    .prose-preview > * + * {
+        margin-top: 1.2em;
+    }
+
+    .prose-preview h1 {
+        @apply text-3xl font-semibold tracking-tight;
+    }
+
+    .prose-preview h2 {
+        @apply mt-8 text-2xl font-semibold tracking-tight;
+    }
+
+    .prose-preview h3 {
+        @apply mt-6 text-xl font-semibold;
+    }
+
+    .prose-preview a {
+        @apply text-brand underline underline-offset-2;
+    }
+
+    .prose-preview ul {
+        @apply list-disc pl-6;
+    }
+
+    .prose-preview ol {
+        @apply list-decimal pl-6;
+    }
+
+    .prose-preview blockquote {
+        @apply pl-5 text-zinc-500 shadow-[inset_3px_0_0_var(--color-brand)];
+    }
+
+    .prose-preview img {
+        @apply mx-auto rounded-xl;
+    }
+
+    .prose-preview figcaption {
+        @apply mt-2 text-center text-sm text-zinc-500;
+    }
+
+    .prose-preview pre.code {
+        @apply relative overflow-x-auto rounded-xl bg-[#16141f] p-4 text-[13.5px] leading-relaxed text-[#e8e6f3];
+    }
+
+    .prose-preview .code-lang {
+        @apply absolute top-2 right-3 text-[11px] text-zinc-400 uppercase;
+    }
+
+    .prose-preview :not(pre) > code {
+        @apply rounded-md bg-zinc-100 px-1.5 py-0.5 font-mono text-[0.88em] dark:bg-white/10;
+    }
+
+    .prose-preview .embed-video,
+    .prose-preview .embed-code {
+        @apply relative aspect-video overflow-hidden rounded-xl bg-zinc-100;
+    }
+
+    .prose-preview .embed iframe {
+        @apply absolute inset-0 size-full;
+    }
+
+    .prose-preview hr {
+        @apply my-8 h-px border-0 bg-zinc-200 dark:bg-white/10;
+    }
+
+    .prose-preview .hljs-keyword,
+    .prose-preview .hljs-built_in,
+    .prose-preview .hljs-type {
+        color: #c792ea;
+    }
+
+    .prose-preview .hljs-string,
+    .prose-preview .hljs-attr {
+        color: #c3e88d;
+    }
+
+    .prose-preview .hljs-number,
+    .prose-preview .hljs-literal {
+        color: #f78c6c;
+    }
+
+    .prose-preview .hljs-comment {
+        color: #757394;
+    }
+
+    .prose-preview .hljs-title {
+        color: #82aaff;
+    }
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes pop-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px) scale(0.98);
+    }
+}
+
+.animate-fade-in {
+    animation: fade-in 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.animate-pop-in {
+    animation: pop-in 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
