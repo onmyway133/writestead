@@ -77,7 +77,7 @@ Progress on Writestead. `[x]` done and checked, `[~]` partly done (the note says
 - [x] GitHub repo is public
 
 ## Waiting on account setup
-- [ ] Enable R2 on the Cloudflare account, then deploy with `node scripts/deploy-hosted.mjs` (uploads use KV until then)
+- [x] R2 enabled; the hosted deploy uses the `writestead-media` bucket (files uploaded before then stay in KV and still load)
 - [ ] Wildcard DNS `* AAAA 100::` (proxied) so new signups at `<name>.writestead.com` resolve
 - [ ] Cloudflare Email Sending for writestead.com and the `EMAIL_FROM` secret, so confirmations and newsletters go out
 - [ ] Platform Stripe keys for Pro and Teams billing
