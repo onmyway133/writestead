@@ -7,3 +7,7 @@ dist/
 .DS_Store
 .kaji/
 .super/
+
+# Licensed Flaticon icons for the hosted landing page. The license forbids redistributing them,
+# so they stay out of the public repo and are uploaded only by scripts/deploy-hosted.mjs.
+public/_ws/brand/

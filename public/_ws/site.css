@@ -425,3 +425,48 @@ mark.hl {
     .marquee-track { flex-wrap: wrap; width: auto; justify-content: center; }
     mark.hl { transition: none; }
 }
+
+/* ---------- Illustrated icons ---------- */
+.art { position: relative; display: inline-flex; flex-shrink: 0; width: var(--art); height: var(--art); align-items: center; justify-content: center; }
+.art img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 6px 10px rgba(40, 20, 100, 0.18)); }
+/* The Phosphor fallback only shows when the image is missing. */
+.art img ~ svg { display: none; }
+.art svg { color: var(--brand); }
+
+.feature-icon { width: auto; height: auto; background: none; border-radius: 0; margin-bottom: 8px; }
+.feature:hover .feature-icon { background: none; color: inherit; transform: rotate(-8deg) scale(1.12) translateY(-4px); }
+
+.floater .art img { filter: drop-shadow(0 3px 6px rgba(40, 20, 100, 0.2)); }
+
+/* Icons drifting across the hero at different depths. */
+.hero-icons { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.hero-inner { position: relative; z-index: 1; }
+.hi { position: absolute; opacity: 0.95; animation: bob 7s var(--ease) infinite alternate; }
+.hi1 { top: 150px; right: 14%; animation-delay: -2s; rotate: 8deg; }
+.hi2 { top: 300px; right: 30%; animation-delay: -4s; rotate: -10deg; }
+.hi3 { top: 110px; right: 36%; animation-delay: -1s; rotate: -6deg; }
+.hi4 { top: 380px; right: 8%; animation-delay: -5s; rotate: 12deg; }
+.hi5 { top: 470px; right: 22%; animation-delay: -3s; rotate: -4deg; }
+@media (max-width: 1100px) { .hi2, .hi3 { display: none; } }
+@media (max-width: 720px) { .hero-icons { display: none; } }
+
+.step-art { position: relative; display: inline-flex; margin-bottom: 8px; }
+.step-art .step-number { position: absolute; right: -10px; bottom: -6px; margin: 0; width: 28px; height: 28px; box-shadow: 0 0 0 3px var(--card); }
+.step:hover .art { transform: translateY(-4px) rotate(-6deg); }
+.step .art { transition: transform 500ms var(--ease); }
+
+.plan-name { display: flex; align-items: center; gap: 12px; }
+.plan:hover .plan-name .art { transform: rotate(-10deg) scale(1.1); }
+.plan-name .art { transition: transform 500ms var(--ease); }
+
+.section-ink .art img { filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.4)); }
+
+@media (prefers-reduced-motion: reduce) {
+    .hi { animation: none; }
+}
+.feature-icon, .step-art, .section-ink .split > div > .art { align-self: flex-start; }
+/* The pastel set needs a tinted tile to read on white. */
+.step-art .art, .plan-name .art { padding: 10px; border-radius: 16px; background: linear-gradient(140deg, #efeaff, #fde7ef); }
+.step-art .art { width: 72px; height: 72px; }
+.plan-name .art { width: 48px; height: 48px; padding: 8px; border-radius: 14px; }
+.step-art .art img, .plan-name .art img { filter: drop-shadow(0 2px 4px rgba(40, 20, 100, 0.12)); }

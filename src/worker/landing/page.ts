@@ -72,7 +72,7 @@ ${options.noindex ? '<meta name="robots" content="noindex">' : ""}
     <div class="footer-col"><p class="title-4">Open source</p><a href="${REPO}">GitHub</a><a href="${REPO}#self-hosting">Self-hosting guide</a><a href="${DEPLOY}">Deploy to Cloudflare</a></div>
     <div class="footer-col"><p class="title-4">Legal</p><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div>
   </div>
-  <div class="container footer-meta caption-5 muted"><span>© ${new Date().getUTCFullYear()} Writestead</span><span>Made for writers who want to own their work.</span></div>
+  <div class="container footer-meta caption-5 muted"><span>© ${new Date().getUTCFullYear()} Writestead</span><span>Made for writers who want to own their work. Illustrated icons from <a href="https://www.flaticon.com" rel="noopener">Flaticon</a>.</span></div>
 </footer>
 <script>${SCRIPT}</script>
 </body>
@@ -102,24 +102,31 @@ function marks(copy: string): string
 
 const MARQUEE = ["Import from Ghost", "WordPress", "Substack", "Medium", "Markdown", "Stripe", "PayPal", "RSS and Atom", "Sitemap and JSON-LD", "Custom domains", "Turnstile", "Webhooks", "Content API", "10 themes", "Cookieless analytics", "Follow-up emails", "Paid posts", "Team roles"];
 
+// Illustrated icons for the hosted landing page live in public/_ws/brand, which is gitignored because
+// their license forbids redistribution. When they're missing, the Phosphor icon underneath shows instead.
+function art(name: string, fallback: string, size = 48): string
+{
+    return `<span class="art" style="--art:${size}px"><img src="/_ws/brand/${name}.webp" alt="" width="${size}" height="${size}" loading="lazy" decoding="async" onerror="this.remove()">${icon(fallback, Math.round(size * 0.5))}</span>`;
+}
+
 function tagline(text: string): string
 {
     return text.split(/(\n)/).map((part) => (part === "\n" ? "<br>" : part.split(" ").map((word) => `<span class="w">${esc(word)}</span>`).join(" "))).join("");
 }
 
-const FEATURES: { icon: string; title: string; text: string }[] = [
-    { icon: "pen-nib", title: "An editor that stays out of the way", text: "Markdown with a ==live preview==. Drag in images, paste a YouTube, X, CodePen or gist link to ==embed it==, and get highlighted code blocks. ==Autosave and revision history== included." },
-    { icon: "envelope-simple", title: "Every post can be a newsletter", text: "==Double opt-in== forms, an embeddable signup widget, ==welcome emails==, segments by label or plan, and ==email-only posts==. Sending runs through Cloudflare Queues." },
-    { icon: "crown-simple", title: "Paid memberships, your money", text: "Free and paid tiers, members-only posts, and a ==preview, then paywall== split. Connect Stripe or PayPal accounts. ==Money goes straight to you.==" },
-    { icon: "chart-line-up", title: "Analytics without cookies", text: "Views, ==unique visitors==, top posts, referrers, countries, devices and UTM sources. Plus ==opens, clicks==, subscriber growth, churn and ==MRR==." },
-    { icon: "palette", title: "Ten themes, no code needed", text: "Minimal, magazine, newsletter, photo, docs, dark, retro and more. Pick ==colors, fonts, logo and layout==, and ==preview before you switch==." },
-    { icon: "arrows-left-right", title: "Come in from anywhere, leave anytime", text: "Import from ==Ghost, WordPress, Substack, Medium== or Markdown files, images and subscribers included. ==Export everything== as JSON, Markdown or CSV whenever you like." },
+const FEATURES: { icon: string; art: string; title: string; text: string }[] = [
+    { icon: "pen-nib", art: "edit", title: "An editor that stays out of the way", text: "Markdown with a ==live preview==. Drag in images, paste a YouTube, X, CodePen or gist link to ==embed it==, and get highlighted code blocks. ==Autosave and revision history== included." },
+    { icon: "envelope-simple", art: "email", title: "Every post can be a newsletter", text: "==Double opt-in== forms, an embeddable signup widget, ==welcome emails==, segments by label or plan, and ==email-only posts==. Sending runs through Cloudflare Queues." },
+    { icon: "crown-simple", art: "shop", title: "Paid memberships, your money", text: "Free and paid tiers, members-only posts, and a ==preview, then paywall== split. Connect Stripe or PayPal accounts. ==Money goes straight to you.==" },
+    { icon: "chart-line-up", art: "compass", title: "Analytics without cookies", text: "Views, ==unique visitors==, top posts, referrers, countries, devices and UTM sources. Plus ==opens, clicks==, subscriber growth, churn and ==MRR==." },
+    { icon: "palette", art: "gallery", title: "Ten themes, no code needed", text: "Minimal, magazine, newsletter, photo, docs, dark, retro and more. Pick ==colors, fonts, logo and layout==, and ==preview before you switch==." },
+    { icon: "arrows-left-right", art: "download", title: "Come in from anywhere, leave anytime", text: "Import from ==Ghost, WordPress, Substack, Medium== or Markdown files, images and subscribers included. ==Export everything== as JSON, Markdown or CSV whenever you like." },
 ];
 
-const STEPS = [
-    { title: "Pick an address", text: "Claim yourname.writestead.com, or deploy your own copy to Cloudflare with one click." },
-    { title: "Write or import", text: "Start a post, or bring your archive and subscribers over from the platform you're leaving." },
-    { title: "Publish and send", text: "Hit publish. Readers get it on the web, in their feed reader and in their inbox." },
+const STEPS: { art: string; fallback: string; title: string; text: string }[] = [
+    { art: "home", fallback: "globe", title: "Pick an address", text: "Claim yourname.writestead.com, or deploy your own copy to Cloudflare with one click." },
+    { art: "pencil", fallback: "pen-nib", title: "Write or import", text: "Start a post, or bring your archive and subscribers over from the platform you're leaving." },
+    { art: "upload", fallback: "lightning", title: "Publish and send", text: "Hit publish. Readers get it on the web, in their feed reader and in their inbox." },
 ];
 
 type Faq = { q: string; a: string };
@@ -145,6 +152,13 @@ export function landingPage(env: AppEnv): string
     const body = marks(`
 <section class="hero">
   <div class="hero-bg" aria-hidden="true"><div class="blob-layer"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span><span class="blob b4"></span><span class="blob b5"></span></div><div class="grain"></div></div>
+  <div class="hero-icons" aria-hidden="true">
+    <span class="hi hi1" data-depth="3">${art("notes", "pen-nib", 72)}</span>
+    <span class="hi hi2" data-depth="-2.4">${art("calendar", "calendar-dots", 64)}</span>
+    <span class="hi hi3" data-depth="4">${art("message", "chat-circle", 56)}</span>
+    <span class="hi hi4" data-depth="-3.2">${art("news", "rss", 60)}</span>
+    <span class="hi hi5" data-depth="2">${art("share", "globe", 52)}</span>
+  </div>
   <div class="container hero-inner" data-depth="0.4">
     <a class="pill caption-1" href="${REPO}"><span class="pill-dot"></span>Open source and runs on Cloudflare ${icon("arrow-right", 14)}</a>
     <h1 class="heading-1 hero-title">Write it here.<br><span class="shine">Own it forever.</span></h1>
@@ -158,10 +172,10 @@ export function landingPage(env: AppEnv): string
   </div>
   <div class="container mock-stage">
     ${productMock()}
-    <div class="floater f1" data-depth="2.2" aria-hidden="true"><span class="fi fi-green">${icon("users-three", 18)}</span><span><b>+24 subscribers</b><small>today</small></span></div>
-    <div class="floater f2" data-depth="1.4" aria-hidden="true"><span class="fi fi-violet">${icon("envelope-simple", 18)}</span><span><b>58.3% opened</b><small>Sunday letter</small></span></div>
-    <div class="floater f3" data-depth="2.8" aria-hidden="true"><span class="fi fi-amber">${icon("crown-simple", 18)}</span><span><b>New paid member</b><small>Supporter, yearly</small></span></div>
-    <div class="floater f4" data-depth="1.8" aria-hidden="true"><span class="fi fi-cyan">${icon("lightning", 18)}</span><span><b>Published</b><small>web, email and RSS</small></span></div>
+    <div class="floater f1" data-depth="2.2" aria-hidden="true">${art("contact", "users-three", 40)}<span><b>+24 subscribers</b><small>today</small></span></div>
+    <div class="floater f2" data-depth="1.4" aria-hidden="true">${art("email", "envelope-simple", 40)}<span><b>58.3% opened</b><small>Sunday letter</small></span></div>
+    <div class="floater f3" data-depth="2.8" aria-hidden="true">${art("star", "crown-simple", 40)}<span><b>New paid member</b><small>Supporter, yearly</small></span></div>
+    <div class="floater f4" data-depth="1.8" aria-hidden="true">${art("bell", "lightning", 40)}<span><b>Published</b><small>web, email and RSS</small></span></div>
   </div>
 </section>
 
@@ -177,7 +191,7 @@ export function landingPage(env: AppEnv): string
     <p class="body-3 muted hl-text">The parts you'd usually stitch together from ==three different tools==, built in and ==working together==.</p>
   </div>
   <div class="feature-grid">
-    ${FEATURES.map((feature) => `<article class="feature card spot hl-text" data-reveal><span class="feature-icon">${icon(feature.icon, 22)}</span><h3 class="title-2">${feature.title}</h3><p class="body-6 muted">${marks(feature.text)}</p></article>`).join("")}
+    ${FEATURES.map((feature) => `<article class="feature card spot hl-text" data-reveal><span class="feature-icon">${art(feature.art, feature.icon, 56)}</span><h3 class="title-2">${feature.title}</h3><p class="body-6 muted">${marks(feature.text)}</p></article>`).join("")}
   </div>
 </section>
 
@@ -196,7 +210,7 @@ export function landingPage(env: AppEnv): string
     <h2 class="heading-3">From blank page to inbox<br>in three steps</h2>
   </div>
   <ol class="steps">
-    ${STEPS.map((step, index) => `<li class="step card" data-reveal><span class="step-number caption-3">${index + 1}</span><h3 class="title-2">${step.title}</h3><p class="body-6 muted">${step.text}</p></li>`).join("")}
+    ${STEPS.map((step, index) => `<li class="step card" data-reveal><span class="step-art">${art(step.art, step.fallback, 64)}<span class="step-number caption-3">${index + 1}</span></span><h3 class="title-2">${step.title}</h3><p class="body-6 muted">${step.text}</p></li>`).join("")}
   </ol>
 </section>
 
@@ -240,6 +254,7 @@ export function landingPage(env: AppEnv): string
 <section class="section section-ink" id="self-host">
   <div class="container split">
     <div data-reveal>
+      ${art("settings", "code", 64)}
       <p class="eyebrow caption-3">Self-host</p>
       <h2 class="heading-3">Your own copy on Cloudflare,<br>every feature unlocked</h2>
       <p class="body-3 hl-text">Click the button, connect your Cloudflare account, and Writestead creates ==the Worker, the D1 database, the R2 bucket, the KV namespace and the queue== for you. ==Updates are a pull from upstream.==</p>
@@ -261,10 +276,10 @@ npm run deploy
     <div class="billing-toggle" role="group" aria-label="Billing period"><button type="button" data-billing="monthly" aria-pressed="true">Monthly</button><button type="button" data-billing="yearly" aria-pressed="false">Yearly</button></div>
   </div>
   <div class="pricing-grid">
-    ${plan({ name: "Free", price: "$0", note: "forever", text: "Everything a personal blog needs.", cta: "Start free", href: "/signup", features: [`yourname.${root}`, "Unlimited posts and pages", "4 free themes", "Up to 1,000 subscribers", "10,000 emails a month", "30 days of analytics", "Comments, RSS, sitemap, search", "Import and export"] })}
-    ${plan({ name: "Pro", price: `<span class="m">$${PRO_PRICE.monthly}</span><span class="y">$${PRO_PRICE.yearly}</span>`, note: '<span class="m">per month</span><span class="y">per year</span>', text: "For one writer building an audience or a business.", cta: "Start with Pro", href: "/signup?plan=pro", featured: true, features: ["Everything in Free", "Custom domain with SSL", "All 10 themes", "Paid memberships with your Stripe", "Up to 10,000 subscribers", "100,000 emails a month", "Full analytics history and revenue", "Custom CSS and code injection", "API and webhooks", "Remove “Powered by Writestead”"] })}
-    ${plan({ name: "Teams", price: `<span class="m">$${TEAMS_PRICE.monthly}</span><span class="y">$${TEAMS_PRICE.yearly}</span>`, note: '<span class="m">per month</span><span class="y">per year</span>', text: "For publications with editors, authors and admins.", cta: "Start with Teams", href: "/signup?plan=teams", features: ["Everything in Pro", "Unlimited team members", "Admin, editor, author and contributor roles", "Up to 25,000 subscribers", "250,000 emails a month"] })}
-    ${plan({ name: "Self-hosted", price: "$0", note: "on your Cloudflare", text: "The whole platform on your own account.", cta: "Deploy to Cloudflare", href: DEPLOY, features: ["Every Pro and Teams feature", "No subscriber or email caps from us", "Your data in your own D1 and R2", "Cloudflare bills you for usage", "AGPL 3.0 open source"] })}
+    ${plan({ name: "Free", art: ["love", "sparkle"], price: "$0", note: "forever", text: "Everything a personal blog needs.", cta: "Start free", href: "/signup", features: [`yourname.${root}`, "Unlimited posts and pages", "4 free themes", "Up to 1,000 subscribers", "10,000 emails a month", "30 days of analytics", "Comments, RSS, sitemap, search", "Import and export"] })}
+    ${plan({ name: "Pro", art: ["diamond", "crown-simple"], price: `<span class="m">$${PRO_PRICE.monthly}</span><span class="y">$${PRO_PRICE.yearly}</span>`, note: '<span class="m">per month</span><span class="y">per year</span>', text: "For one writer building an audience or a business.", cta: "Start with Pro", href: "/signup?plan=pro", featured: true, features: ["Everything in Free", "Custom domain with SSL", "All 10 themes", "Paid memberships with your Stripe", "Up to 10,000 subscribers", "100,000 emails a month", "Full analytics history and revenue", "Custom CSS and code injection", "API and webhooks", "Remove “Powered by Writestead”"] })}
+    ${plan({ name: "Teams", art: ["user", "users-three"], price: `<span class="m">$${TEAMS_PRICE.monthly}</span><span class="y">$${TEAMS_PRICE.yearly}</span>`, note: '<span class="m">per month</span><span class="y">per year</span>', text: "For publications with editors, authors and admins.", cta: "Start with Teams", href: "/signup?plan=teams", features: ["Everything in Pro", "Unlimited team members", "Admin, editor, author and contributor roles", "Up to 25,000 subscribers", "250,000 emails a month"] })}
+    ${plan({ name: "Self-hosted", art: ["protection", "shield-check"], price: "$0", note: "on your Cloudflare", text: "The whole platform on your own account.", cta: "Deploy to Cloudflare", href: DEPLOY, features: ["Every Pro and Teams feature", "No subscriber or email caps from us", "Your data in your own D1 and R2", "Cloudflare bills you for usage", "AGPL 3.0 open source"] })}
   </div>
 </section>
 
@@ -296,11 +311,11 @@ npm run deploy
     });
 }
 
-function plan(options: { name: string; price: string; note: string; text: string; cta: string; href: string; features: string[]; featured?: boolean }): string
+function plan(options: { name: string; art?: [string, string]; price: string; note: string; text: string; cta: string; href: string; features: string[]; featured?: boolean }): string
 {
     return `<article class="plan card${options.featured ? " plan-featured" : ""}" data-reveal>
       ${options.featured ? '<span class="plan-badge caption-3">Most popular</span>' : ""}
-      <h3 class="title-1">${options.name}</h3>
+      <h3 class="title-1 plan-name">${options.art ? art(options.art[0], options.art[1], 40) : ""}${options.name}</h3>
       <p class="plan-price"><span class="heading-3">${options.price}</span><span class="caption-2 muted">${options.note}</span></p>
       <p class="body-6 muted">${options.text}</p>
       <a class="btn ${options.featured ? "btn-primary" : "btn-secondary"} btn-block" href="${options.href}">${options.cta}</a>
