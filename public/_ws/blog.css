@@ -108,6 +108,7 @@ p { text-wrap: pretty; }
 .feed { flex: 1; min-width: 0; }
 .section-title { font-size: 14px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 32px 0 16px; font-weight: 600; font-family: var(--font-body); }
 .featured { margin-bottom: 16px; }
+.featured .grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
 .empty { color: var(--muted); padding: 48px 0; }
 
 /* Post cards */

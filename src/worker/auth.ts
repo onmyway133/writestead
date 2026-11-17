@@ -69,7 +69,8 @@ export async function verifyLogin(db: D1Database, email: string, password: strin
 // carries over to the new blog's dashboard. Custom domains get their own host-only cookie.
 function cookieDomain(c: AppContext): string | undefined
 {
-    if (!isMulti(c.env))
+    // Browsers reject a Domain attribute without a dot, such as local testing on localhost.
+    if (!isMulti(c.env) || !c.env.ROOT_DOMAIN.includes("."))
     {
         return undefined;
     }

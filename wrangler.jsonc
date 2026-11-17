@@ -8,7 +8,8 @@
     "assets": {
         "binding": "ASSETS",
         // The Worker renders the blog, the API and the admin shell. Only built files skip it.
-        "run_worker_first": ["/*", "!/admin/assets/*", "!/_ws/*"]
+        // The /src, /@ and /node_modules entries are Vite's dev server paths; they don't exist in a build.
+        "run_worker_first": ["/*", "!/admin/assets/*", "!/_ws/*", "!/src/*", "!/@vite/*", "!/@react-refresh", "!/@id/*", "!/@fs/*", "!/node_modules/*"]
     },
     "vars": {
         // "single": one blog per install (self-hosting). "multi": many blogs on subdomains of ROOT_DOMAIN.
