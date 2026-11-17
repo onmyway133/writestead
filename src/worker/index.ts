@@ -3,7 +3,7 @@ import { blockDemoWrites, type HonoEnv, requireStaff } from "./auth";
 import { ensureSchema } from "./db/migrate";
 import type { NewsletterJob } from "./email";
 import type { AppEnv } from "./env";
-import { publishScheduled, sendNewsletterChunk } from "./jobs";
+import { publishScheduled, sendFollowUps, sendNewsletterChunk } from "./jobs";
 import { landingPage, legalPage, marketingNotFound, marketingRobots, marketingSitemap } from "./landing/page";
 import { errorResponse } from "./lib/http";
 import { analyticsRoutes } from "./routes/admin/analytics";
@@ -11,6 +11,7 @@ import { audienceRoutes } from "./routes/admin/audience";
 import { contentRoutes } from "./routes/admin/content";
 import { siteRoutes } from "./routes/admin/site";
 import { authRoutes } from "./routes/auth";
+import { billingAdminRoutes, billingWebhookRoutes } from "./routes/billing";
 import { publicRoutes } from "./routes/public";
 import { v1Routes } from "./routes/v1";
 import { resolveHost } from "./site";
@@ -41,6 +42,9 @@ async function adminShell(c: Context<HonoEnv>)
 
 app.get("/admin", adminShell);
 app.get("/admin/*", adminShell);
+
+// Stripe calls the platform billing webhook on whatever host it was given, including the root domain.
+app.route("/", billingWebhookRoutes);
 
 // Everything else depends on which hostname was asked for.
 app.use("*", async (c, next) =>
@@ -88,6 +92,7 @@ app.route("/api/admin", siteRoutes);
 app.route("/api/admin", contentRoutes);
 app.route("/api/admin", audienceRoutes);
 app.route("/api/admin", analyticsRoutes);
+app.route("/api/admin", billingAdminRoutes);
 app.route("/api/v1", v1Routes);
 
 app.all("/api/admin/*", (c) =>
@@ -118,6 +123,10 @@ export default {
     },
     async scheduled(_controller: ScheduledController, env: AppEnv, ctx: ExecutionContext)
     {
-        ctx.waitUntil(ensureSchema(env.DB).then(() => publishScheduled(env)));
+        ctx.waitUntil(ensureSchema(env.DB).then(async () =>
+        {
+            await publishScheduled(env);
+            await sendFollowUps(env);
+        }));
     },
 } satisfies ExportedHandler<AppEnv, NewsletterJob>;

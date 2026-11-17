@@ -10,3 +10,9 @@ EMAIL_FROM=
 
 # Optional. Cloudflare Turnstile secret, used with the TURNSTILE_SITE_KEY variable.
 TURNSTILE_SECRET_KEY=
+
+# Leave empty when self-hosting. Only for a multi-blog service (MODE=multi) that bills blogs for
+# Pro and Teams: the platform's Stripe secret key, and the signing secret of the webhook that
+# points at https://<ROOT_DOMAIN>/api/billing/webhook.
+PLATFORM_STRIPE_SECRET_KEY=
+PLATFORM_STRIPE_WEBHOOK_SECRET=

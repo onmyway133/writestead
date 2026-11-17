@@ -1,7 +1,7 @@
 import { escapeHtml, renderMarkdown, splitPaywall } from "../shared/markdown";
 import type { SiteWithSettings } from "../shared/types";
-import { type AppEnv, siteUrl } from "./env";
-import { newId, now } from "./lib/http";
+import { type AppEnv, getEntitlements, siteUrl } from "./env";
+import { ApiError, newId, now } from "./lib/http";
 
 export type EmailOutcome = { sent: true } | { sent: false; reason: string | null };
 
@@ -83,6 +83,14 @@ export function welcomeEmail(site: SiteWithSettings, accountLink: string)
     return { subject: welcome.subject, html: shell(site, accent, inner, footer), text: `${welcome.subject}\n\n${welcome.body}\n\nManage your subscription: ${accountLink}` };
 }
 
+export function followUpEmail(site: SiteWithSettings, step: { subject: string; body: string }, unsubscribeLink: string)
+{
+    const accent = accentOf(site);
+    const inner = `<h1 style="margin:0 0 12px;font-size:22px">${escapeHtml(step.subject)}</h1><div style="color:#3b3852">${renderMarkdown(step.body)}</div>`;
+    const footer = `<a href="${escapeHtml(unsubscribeLink)}" style="color:#8a87a0">Unsubscribe</a>`;
+    return { subject: step.subject, html: shell(site, accent, inner, footer), text: `${step.body}\n\nUnsubscribe: ${unsubscribeLink}` };
+}
+
 export type NewsletterPost = { id: string; title: string; slug: string; excerpt: string; content: string; cover_image: string; visibility: string };
 export type Recipient = { id: string; email: string; name: string; tier: string; token: string };
 
@@ -146,6 +154,14 @@ export async function queueNewsletter(env: AppEnv, site: SiteWithSettings, post:
         .prepare(`SELECT id FROM subscribers WHERE site_id = ? AND status = 'active' AND email_enabled = 1 ${filter}`)
         .bind(...binds)
         .all<{ id: string }>();
+    // Plans cap emails per calendar month; a send that would cross the cap is refused whole.
+    const monthStart = Math.floor(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1) / 1000);
+    const used = await env.DB.prepare("SELECT COALESCE(SUM(recipients), 0) AS n FROM emails WHERE site_id = ? AND created_at >= ?").bind(site.id, monthStart).first<{ n: number }>();
+    const limit = getEntitlements(env, site).monthlyEmailLimit;
+    if ((used?.n ?? 0) + results.length > limit)
+    {
+        throw new ApiError(402, "email_limit", `This send needs ${results.length} emails, but only ${Math.max(0, limit - (used?.n ?? 0))} are left this month on your plan.`);
+    }
     const emailId = newId();
     await env.DB.batch([
         env.DB.prepare("INSERT INTO emails (id, site_id, post_id, subject, segment, status, recipients, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")

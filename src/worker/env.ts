@@ -2,13 +2,21 @@ import { PLAN_ENTITLEMENTS, type Entitlements } from "../shared/plans";
 import type { Site } from "../shared/types";
 
 // Bindings from wrangler.jsonc plus the optional secrets from .dev.vars.example.
-export type AppEnv = Omit<Env, "MODE" | "ROOT_DOMAIN" | "TURNSTILE_SITE_KEY"> & {
+// MEDIA is optional: an install without R2 stores uploads in KV (see media.ts).
+export type AppEnv = Omit<Env, "MODE" | "ROOT_DOMAIN" | "TURNSTILE_SITE_KEY" | "MEDIA"> & {
+    MEDIA?: R2Bucket;
     MODE: string;
     ROOT_DOMAIN: string;
     TURNSTILE_SITE_KEY: string;
     OWNER_EMAIL?: string;
     EMAIL_FROM?: string;
     TURNSTILE_SECRET_KEY?: string;
+    // Hosted version: create Cloudflare for SaaS custom hostnames for blogs' own domains.
+    CF_API_TOKEN?: string;
+    CF_ZONE_ID?: string;
+    // Hosted version only: the platform's Stripe account that bills blogs for Pro and Teams.
+    PLATFORM_STRIPE_SECRET_KEY?: string;
+    PLATFORM_STRIPE_WEBHOOK_SECRET?: string;
 };
 
 export function isMulti(env: AppEnv): boolean

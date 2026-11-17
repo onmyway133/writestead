@@ -8,6 +8,7 @@ import { getEntitlements, isMulti, siteUrl } from "../../env";
 import { randomHex, sha256Hex } from "../../lib/crypto";
 import { ApiError, badRequest, newId, now, readJson, text } from "../../lib/http";
 import { excerptOf, slugify } from "../../lib/text";
+import { createHostname, deleteHostname, hostnamesEnabled, hostnameStatus } from "../../hostnames";
 import { putMedia } from "../../media";
 import { WEBHOOK_EVENTS } from "../../webhooks";
 
@@ -86,12 +87,54 @@ siteRoutes.put("/domain", async (c) =>
     {
         throw badRequest("Enter a domain like blog.example.com.");
     }
-    await c.env.DB.prepare("UPDATE sites SET custom_domain = ? WHERE id = ?").bind(domain || null, site.id).run()
-        .catch(() =>
+    if (domain && (await c.env.DB.prepare("SELECT 1 FROM sites WHERE custom_domain = ? AND id != ?").bind(domain, site.id).first()))
+    {
+        throw new ApiError(409, "domain_taken", "Another blog already uses that domain.");
+    }
+    // Swap the Cloudflare custom hostname first, so a failure leaves the old domain working.
+    const current = await c.env.DB.prepare("SELECT custom_hostname_id FROM sites WHERE id = ?").bind(site.id).first<{ custom_hostname_id: string | null }>();
+    let hostnameId = current?.custom_hostname_id ?? null;
+    if (isMulti(c.env) && hostnamesEnabled(c.env) && domain !== (site.custom_domain ?? ""))
+    {
+        try
         {
-            throw new ApiError(409, "domain_taken", "Another blog already uses that domain.");
-        });
+            const created = domain ? await createHostname(c.env, domain) : null;
+            if (hostnameId)
+            {
+                await deleteHostname(c.env, hostnameId).catch((error) =>
+                {
+                    console.error("Old custom hostname not removed", error);
+                });
+            }
+            hostnameId = created;
+        }
+        catch (error)
+        {
+            console.error("Custom hostname failed", error);
+            throw new ApiError(503, "hostname_failed", "Cloudflare couldn't add that domain right now. Try again in a minute.");
+        }
+    }
+    await c.env.DB.prepare("UPDATE sites SET custom_domain = ?, custom_hostname_id = ? WHERE id = ?").bind(domain || null, domain ? hostnameId : null, site.id).run();
     return c.json({ ok: true, domain: domain || null, target: isMulti(c.env) ? `custom.${c.env.ROOT_DOMAIN}` : new URL(c.req.url).hostname });
+});
+
+// Where the custom domain is in Cloudflare's setup: DNS seen, certificate issued, and any records still needed.
+siteRoutes.get("/domain/status", async (c) =>
+{
+    const row = await c.env.DB.prepare("SELECT custom_hostname_id FROM sites WHERE id = ?").bind(c.get("site").id).first<{ custom_hostname_id: string | null }>();
+    if (!row?.custom_hostname_id || !hostnamesEnabled(c.env))
+    {
+        return c.json({ managed: false });
+    }
+    try
+    {
+        return c.json({ managed: true, ...(await hostnameStatus(c.env, row.custom_hostname_id)) });
+    }
+    catch (error)
+    {
+        console.error("Custom hostname status failed", error);
+        return c.json({ managed: true, status: "unknown", ssl: "", records: [] });
+    }
 });
 
 // ---------- Staff ----------

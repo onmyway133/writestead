@@ -23,18 +23,26 @@
             },
             "TURNSTILE_SECRET_KEY": {
                 "description": "Optional. A Cloudflare Turnstile secret key. Set it together with the TURNSTILE_SITE_KEY variable to protect subscribe, comment and sign-up forms from bots."
+            },
+            "PLATFORM_STRIPE_SECRET_KEY": {
+                "description": "Leave empty when self-hosting. Only for running a multi-blog service (MODE=multi) that charges blogs for Pro and Teams with your own Stripe account."
+            },
+            "PLATFORM_STRIPE_WEBHOOK_SECRET": {
+                "description": "Leave empty when self-hosting. Signing secret of the Stripe webhook pointing at https://<ROOT_DOMAIN>/api/billing/webhook, for the multi-blog plan billing above."
             }
         }
     },
     "dependencies": {
         "@fontsource-variable/geist": "5.3.0",
         "@phosphor-icons/react": "2.1.10",
+        "@resvg/resvg-wasm": "2.6.2",
         "fflate": "0.8.3",
         "highlight.js": "11.11.1",
         "hono": "4.13.18",
         "marked": "18.1.2",
         "react": "19.3.1",
-        "react-dom": "19.3.1"
+        "react-dom": "19.3.1",
+        "satori": "0.32.0"
     },
     "devDependencies": {
         "@cloudflare/vite-plugin": "1.69.1",

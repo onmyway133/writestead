@@ -3,6 +3,9 @@
 
 export type NavItem = { label: string; url: string };
 
+// A follow-up email sent a number of days after someone confirms their subscription.
+export type FollowUp = { id: string; delayDays: number; subject: string; body: string; enabled: boolean };
+
 export type SiteSettings = {
     theme: string;
     accent: string;
@@ -31,6 +34,7 @@ export type SiteSettings = {
     commentsMode: "off" | "all" | "members" | "paid";
     commentsModeration: boolean;
     welcomeEmail: { enabled: boolean; subject: string; body: string };
+    followUps: FollowUp[];
     subscribeTitle: string;
     subscribeText: string;
     newsletterName: string;
@@ -77,6 +81,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
         subject: "Welcome aboard",
         body: "Thanks for subscribing. New posts will land in your inbox. You can change your email preferences at any time from the link at the bottom of every email.",
     },
+    followUps: [],
     subscribeTitle: "Subscribe to the newsletter",
     subscribeText: "Get new posts in your inbox. No spam, unsubscribe anytime.",
     newsletterName: "",
@@ -102,6 +107,7 @@ export function readSettings(json: string | null | undefined): SiteSettings
         ...parsed,
         social: { ...DEFAULT_SETTINGS.social, ...parsed.social },
         welcomeEmail: { ...DEFAULT_SETTINGS.welcomeEmail, ...parsed.welcomeEmail },
+        followUps: Array.isArray(parsed.followUps) ? parsed.followUps : [],
     };
 }
 

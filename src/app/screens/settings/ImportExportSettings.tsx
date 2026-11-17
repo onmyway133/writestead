@@ -150,6 +150,33 @@ export function ImportExportSettings()
         setProgress(null);
     }
 
+    // Downloads every uploaded file through the blog and zips it in the browser.
+    async function exportMedia()
+    {
+        setExporting(true);
+        try
+        {
+            const { media } = await api<{ media: { key: string; url: string }[] }>("/admin/media");
+            const files: Record<string, Uint8Array> = {};
+            for (const [index, item] of media.entries())
+            {
+                setProgress(`Downloading files ${index + 1} of ${media.length}`);
+                const response = await fetch(item.url);
+                if (response.ok)
+                {
+                    files[item.key.split("/").slice(1).join("/")] = new Uint8Array(await response.arrayBuffer());
+                }
+            }
+            downloadBlob(zipSync(files, { level: 0 }) as BlobPart, `writestead-media-${new Date().toISOString().slice(0, 10)}.zip`, "application/zip");
+        }
+        catch (caught)
+        {
+            toast(errorMessage(caught), "error");
+        }
+        setProgress(null);
+        setExporting(false);
+    }
+
     async function exportAs(kind: "json" | "markdown")
     {
         setExporting(true);
@@ -244,6 +271,10 @@ export function ImportExportSettings()
                         void exportAs("markdown");
                     }}><DownloadSimple />Posts as Markdown ZIP</button>
                     <a className="btn-secondary" href="/api/admin/subscribers/export"><DownloadSimple />Subscribers as CSV</a>
+                    <button type="button" className="btn-secondary" disabled={exporting} onClick={() =>
+                    {
+                        void exportMedia();
+                    }}><DownloadSimple />Images and files as ZIP</button>
                 </div>
                 <p className="muted text-xs">The JSON export lists every image with its URL on {me.url.replace(/^https?:\/\//, "")}, so you can download your media too.</p>
             </SettingsCard>

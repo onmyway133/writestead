@@ -8,7 +8,7 @@ import type { Author, PublicPost, Tag } from "./data";
 
 type Html = HtmlEscapedString | Promise<HtmlEscapedString>;
 
-export type Reader = { id: string; email: string; name: string; tier: "free" | "paid" | "comp"; status: string; token: string };
+export type Reader = { id: string; email: string; name: string; tier: "free" | "paid" | "comp"; status: string; token: string; provider?: string };
 
 export type RenderContext = {
     site: SiteWithSettings;
@@ -111,7 +111,8 @@ export function layout(ctx: RenderContext, page: {
     const theme = findTheme(ctx.themeOverride ?? settings.theme);
     const description = page.description || site.description;
     const canonical = page.canonical || `${ctx.origin}${page.path}`;
-    const image = page.image || settings.coverImage || "";
+    // Without a chosen image, link previews use the card generated at /og/home.png.
+    const image = page.image || settings.coverImage || "/og/home.png";
     const scheme = theme.id === "midnight" || theme.id === "lens" ? "dark" : settings.colorScheme;
     const showSubscribe = settings.membersEnabled;
     return html`<!doctype html>
@@ -389,7 +390,7 @@ export function postPage(ctx: RenderContext, post: PublicPost, extra: { related:
         description: post.meta_description || post.excerpt,
         path: `/${post.slug}`,
         canonical: post.canonical_url || undefined,
-        image: post.og_image || post.cover_image,
+        image: post.og_image || post.cover_image || `/og/${post.slug}.png`,
         type: isPage ? "website" : "article",
         postId: post.id,
         body,
@@ -398,7 +399,7 @@ export function postPage(ctx: RenderContext, post: PublicPost, extra: { related:
             "@type": "BlogPosting",
             headline: post.title,
             description: post.meta_description || post.excerpt,
-            image: post.og_image || post.cover_image || undefined,
+            image: absolute(ctx, post.og_image || post.cover_image || `/og/${post.slug}.png`),
             datePublished: new Date(post.published_at * 1000).toISOString(),
             dateModified: new Date(post.updated_at * 1000).toISOString(),
             author: post.authors.map((author) => ({ "@type": "Person", name: author.name, url: `${ctx.origin}/author/${author.slug}` })),
@@ -497,8 +498,12 @@ export function messagePage(ctx: RenderContext, title: string, message: string, 
     return layout(ctx, { title: `${title} · ${ctx.site.title}`, path: "/", body, noindex: true });
 }
 
-export function subscribePage(ctx: RenderContext, tiers: { id: string; name: string; description: string; monthly_price: number; yearly_price: number; currency: string; benefits: string }[], wantsPaid: boolean): Html
+export function subscribePage(ctx: RenderContext, tiers: { id: string; name: string; description: string; monthly_price: number; yearly_price: number; currency: string; benefits: string }[], wantsPaid: boolean, providers: string[] = []): Html
 {
+    // With both providers connected the reader picks; with one, checkout uses it without asking.
+    const choosePay = (tierId: string) => providers.length > 1
+        ? html`<div class="interval" role="radiogroup" aria-label="Pay with">${providers.map((provider, index) => html`<label><input type="radio" name="provider" value="${provider}" id="pay-${provider}-${tierId}"${index === 0 ? raw(" checked") : ""}> ${provider === "paypal" ? "PayPal" : "Card"}</label>`)}</div>`
+        : html``;
     const settings = ctx.site.settings;
     const body = html`<section class="page-header wrap-narrow center">
         <h1>${settings.subscribeTitle}</h1><p class="page-description">${settings.subscribeText}</p>
@@ -522,6 +527,7 @@ export function subscribePage(ctx: RenderContext, tiers: { id: string; name: str
             <input type="hidden" name="tier_id" value="${tier.id}">
             ${ctx.reader ? "" : html`<label class="sr-only" for="ck-${tier.id}">Email</label><input id="ck-${tier.id}" type="email" name="email" required placeholder="you@example.com">`}
             <div class="interval"><label><input type="radio" name="interval" value="month" checked> Monthly</label>${tier.yearly_price ? html`<label><input type="radio" name="interval" value="year"> Yearly</label>` : ""}</div>
+            ${choosePay(tier.id)}
             <button class="btn" type="submit">Join ${tier.name}</button>
             <p class="form-status" role="status" aria-live="polite"></p>
           </form>
@@ -552,6 +558,8 @@ export function accountPage(ctx: RenderContext, sent: boolean): Html
               <h2>Membership</h2>
               <p><span class="badge">${reader.tier === "paid" ? "Paid member" : reader.tier === "comp" ? "Complimentary" : "Free member"}</span> ${reader.status === "unsubscribed" ? html`<span class="muted">Email paused</span>` : ""}</p>
               ${reader.tier === "free" && ctx.site.settings.paidEnabled ? html`<a id="upgrade" class="btn" href="/subscribe?plan=paid">Upgrade to paid</a>` : ""}
+              ${reader.tier === "paid" && reader.provider === "stripe" ? html`<form method="post" action="/api/account/billing" data-ws-form><button class="btn btn-ghost" type="submit">Manage billing</button><p class="form-status" role="status" aria-live="polite"></p></form>` : ""}
+              ${reader.tier === "paid" && reader.provider === "paypal" ? html`<p class="muted">Your membership is billed through PayPal. Manage or cancel it from your PayPal account.</p>` : ""}
             </div>
             <form class="account-card" method="post" action="/api/account" data-ws-form>
               <h2>Profile and email</h2>

@@ -247,9 +247,15 @@ audienceRoutes.get("/tiers", async (c) =>
     const site = c.get("site");
     const [tiers, accounts] = await c.env.DB.batch([
         c.env.DB.prepare("SELECT id, name, description, monthly_price, yearly_price, currency, benefits, active FROM tiers WHERE site_id = ? ORDER BY monthly_price").bind(site.id),
-        c.env.DB.prepare("SELECT id, provider, label, public_key, is_default, created_at, substr(secret, 1, 8) AS hint, webhook_secret != '' AS has_webhook FROM payment_accounts WHERE site_id = ? ORDER BY created_at").bind(site.id),
+        // Only a prefix is shown: the Stripe key's mode prefix, or PayPal's public client id.
+        c.env.DB.prepare(
+            `SELECT id, provider, label, is_default, sandbox, created_at, webhook_secret != '' AS has_webhook,
+             CASE WHEN provider = 'paypal' THEN substr(public_key, 1, 10) ELSE substr(secret, 1, 8) END AS hint
+             FROM payment_accounts WHERE site_id = ? ORDER BY created_at`
+        ).bind(site.id),
     ]);
-    return c.json({ tiers: tiers.results, accounts: accounts.results, webhookBase: `${siteUrl(c.env, site, new URL(c.req.url).origin)}/api/webhooks/stripe/` });
+    // The UI appends "<provider>/<account id>" to build each account's webhook URL.
+    return c.json({ tiers: tiers.results, accounts: accounts.results, webhookBase: `${siteUrl(c.env, site, new URL(c.req.url).origin)}/api/webhooks/` });
 });
 
 function requirePaid(c: Parameters<typeof requirePermission>[0])
@@ -295,7 +301,7 @@ audienceRoutes.delete("/tiers/:id", async (c) =>
 audienceRoutes.post("/payment-accounts", async (c) =>
 {
     requirePaid(c);
-    const body = await readJson<{ provider: string; label: string; secret: string; public_key: string; webhook_secret: string }>(c);
+    const body = await readJson<{ provider: string; label: string; secret: string; public_key: string; webhook_secret: string; sandbox: boolean }>(c);
     const provider = body.provider === "paypal" ? "paypal" : "stripe";
     const secret = text(body.secret, { max: 300, field: "Secret key" });
     if (provider === "stripe" && !/^(sk|rk)_(live|test)_/.test(secret))
@@ -306,12 +312,33 @@ audienceRoutes.post("/payment-accounts", async (c) =>
     {
         throw badRequest("Paste the account's secret.");
     }
+    if (provider === "paypal" && !text(body.public_key, { max: 300 }))
+    {
+        throw badRequest("PayPal needs the client ID and the secret.");
+    }
     const site = c.get("site");
     const hasDefault = await c.env.DB.prepare("SELECT 1 FROM payment_accounts WHERE site_id = ? AND provider = ? AND is_default = 1").bind(site.id, provider).first();
     const id = newId();
-    await c.env.DB.prepare("INSERT INTO payment_accounts (id, site_id, provider, label, secret, public_key, webhook_secret, is_default, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
-        .bind(id, site.id, provider, text(body.label, { max: 80 }) || (provider === "stripe" ? "Stripe" : "PayPal"), secret, text(body.public_key, { max: 300 }), text(body.webhook_secret, { max: 300 }), hasDefault ? 0 : 1, now()).run();
+    await c.env.DB.prepare("INSERT INTO payment_accounts (id, site_id, provider, label, secret, public_key, webhook_secret, sandbox, is_default, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+        .bind(
+            id, site.id, provider, text(body.label, { max: 80 }) || (provider === "stripe" ? "Stripe" : "PayPal"), secret, text(body.public_key, { max: 300 }),
+            text(body.webhook_secret, { max: 300 }), provider === "paypal" && body.sandbox ? 1 : 0, hasDefault ? 0 : 1, now()
+        ).run();
     return c.json({ id });
+});
+
+// The webhook URL includes the account id, so its secret (Stripe) or webhook id (PayPal) comes after connecting.
+audienceRoutes.put("/payment-accounts/:id/webhook", async (c) =>
+{
+    requirePaid(c);
+    const body = await readJson<{ webhook_secret: string }>(c);
+    const value = text(body.webhook_secret, { max: 300, field: "Webhook secret" });
+    if (!value)
+    {
+        throw badRequest("Paste the webhook signing secret or webhook ID.");
+    }
+    await c.env.DB.prepare("UPDATE payment_accounts SET webhook_secret = ? WHERE id = ? AND site_id = ?").bind(value, c.req.param("id"), c.get("site").id).run();
+    return c.json({ ok: true });
 });
 
 audienceRoutes.put("/payment-accounts/:id/default", async (c) =>

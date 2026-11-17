@@ -5,16 +5,18 @@ import { checkEmail } from "../auth";
 import { approvedComments, archive, findAuthor, findBySlug, findTag, listPosts, PAGE_SIZE, popularTags, relatedPosts, searchPosts } from "../blog/data";
 import { atom, robots, rss, sitemap } from "../blog/feeds";
 import {
-    accountPage, archivePage, canRead, homePage, listingPage, messagePage, notFoundPage, postPage, type Reader,
+    accountPage, archivePage, canRead, formatDate, homePage, listingPage, messagePage, notFoundPage, postPage, type Reader,
     type RenderContext, searchPage, subscribePage, waitlistPage,
 } from "../blog/render";
+import { cachedOgResponse, cardVersion, renderOgImage } from "../og";
 import { confirmEmail, sendEmail, signInEmail, welcomeEmail } from "../email";
 import { getEntitlements, isMulti, siteUrl } from "../env";
 import { randomHex, sha256Hex } from "../lib/crypto";
 import { ApiError, newId, now } from "../lib/http";
 import { verifyTurnstile } from "../lib/turnstile";
 import { deviceOf } from "../lib/ua";
-import { createCheckout, handleStripeWebhook } from "../payments";
+import { getMedia } from "../media";
+import { connectedProviders, createBillingPortal, createCheckout, handlePayPalWebhook, handleStripeWebhook } from "../payments";
 
 export const READER_COOKIE = "ws_reader";
 
@@ -30,7 +32,7 @@ async function loadReader(c: C): Promise<Reader | null>
         return null;
     }
     return c.env.DB
-        .prepare("SELECT id, email, name, tier, status, token FROM subscribers WHERE site_id = ? AND token = ? AND status != 'pending'")
+        .prepare("SELECT id, email, name, tier, status, token, provider FROM subscribers WHERE site_id = ? AND token = ? AND status != 'pending'")
         .bind(c.get("site").id, token)
         .first<Reader>();
 }
@@ -157,7 +159,8 @@ publicRoutes.get("/subscribe", async (c) =>
         .bind(ctx.site.id)
         .all<{ id: string; name: string; description: string; monthly_price: number; yearly_price: number; currency: string; benefits: string }>();
     const paid = getEntitlements(c.env, ctx.site).canUsePaidMembers ? results : [];
-    return c.html(subscribePage(ctx, paid, c.req.query("plan") === "paid"));
+    const providers = paid.length > 0 ? await connectedProviders(c.env, ctx.site.id) : [];
+    return c.html(subscribePage(ctx, paid, c.req.query("plan") === "paid", providers));
 });
 
 publicRoutes.get("/account", async (c) =>
@@ -231,16 +234,7 @@ publicRoutes.get("/media/*", async (c) =>
     {
         return c.notFound();
     }
-    const object = await c.env.MEDIA.get(key);
-    if (!object)
-    {
-        return c.notFound();
-    }
-    const headers = new Headers();
-    object.writeHttpMetadata(headers);
-    headers.set("ETag", object.httpEtag);
-    headers.set("Cache-Control", "public, max-age=31536000, immutable");
-    return new Response(object.body, { headers });
+    return (await getMedia(c.env, key)) ?? c.notFound();
 });
 
 // ---------- Subscribing ----------
@@ -421,6 +415,22 @@ publicRoutes.post("/api/account", async (c) =>
     return reply(c, "Saved.");
 });
 
+// Opens Stripe's billing portal so a paid member can change their card or cancel.
+publicRoutes.post("/api/account/billing", async (c) =>
+{
+    const reader = await loadReader(c);
+    if (!reader)
+    {
+        throw new ApiError(401, "unauthorized", "Sign in first.");
+    }
+    const url = await createBillingPortal(c.env, c.get("site").id, reader.id, `${origin(c)}/account`);
+    if (wantsJson(c))
+    {
+        return c.json({ ok: true, message: "Opening billing…", redirect: url });
+    }
+    return c.redirect(url, 303);
+});
+
 publicRoutes.post("/api/account/signout", (c) =>
 {
     deleteCookie(c, READER_COOKIE, { path: "/", secure: true });
@@ -559,7 +569,13 @@ publicRoutes.post("/api/checkout", async (c) =>
     const form = await formOrJson(c);
     const reader = await loadReader(c);
     const email = reader?.email ?? checkEmail(form.email);
-    const url = await createCheckout(c.env, site, { tierId: form.tier_id ?? "", interval: form.interval === "year" ? "year" : "month", email, origin: origin(c) });
+    const url = await createCheckout(c.env, site, {
+        tierId: form.tier_id ?? "",
+        interval: form.interval === "year" ? "year" : "month",
+        email,
+        origin: origin(c),
+        provider: form.provider === "paypal" ? "paypal" : form.provider === "stripe" ? "stripe" : undefined,
+    });
     if (wantsJson(c))
     {
         return c.json({ ok: true, message: "Opening checkout…", redirect: url });
@@ -571,6 +587,42 @@ publicRoutes.post("/api/webhooks/stripe/:account", async (c) =>
 {
     await handleStripeWebhook(c.env, c.get("site"), c.req.param("account"), c.req.raw);
     return c.json({ received: true });
+});
+
+publicRoutes.post("/api/webhooks/paypal/:account", async (c) =>
+{
+    await handlePayPalWebhook(c.env, c.get("site"), c.req.param("account"), c.req.raw);
+    return c.json({ received: true });
+});
+
+// ---------- Generated social images ----------
+
+publicRoutes.get("/og/:file{[a-z0-9][a-z0-9-]*\\.png}", async (c) =>
+{
+    const site = c.get("site");
+    const slug = c.req.param("file").replace(/\.png$/, "");
+    const poweredBy = !(site.settings.hidePoweredBy && getEntitlements(c.env, site).canHidePoweredBy);
+    const requestOrigin = new URL(c.req.url).origin;
+    if (slug === "home")
+    {
+        const card = { title: site.description || site.title, eyebrow: site.title, footer: new URL(origin(c)).host, poweredBy };
+        return cachedOgResponse(c.req.raw, cardVersion(site, card.title, card.footer, String(poweredBy)), c.executionCtx, () =>
+        {
+            return renderOgImage(c.env, requestOrigin, site, card);
+        });
+    }
+    const post = await findBySlug(c.env.DB, site, slug);
+    if (!post)
+    {
+        return c.notFound();
+    }
+    const date = post.type === "post" ? formatDate({ site } as RenderContext, post.published_at) : "";
+    const footer = [post.authors.map((author) => author.name).join(", "), date].filter(Boolean).join("  ·  ");
+    const card = { title: post.title, eyebrow: site.title, footer: footer || new URL(origin(c)).host, poweredBy };
+    return cachedOgResponse(c.req.raw, cardVersion(site, post.updated_at, card.footer, String(poweredBy)), c.executionCtx, () =>
+    {
+        return renderOgImage(c.env, requestOrigin, site, card);
+    });
 });
 
 // ---------- Posts and pages (last, so fixed paths win) ----------
